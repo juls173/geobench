@@ -1,12 +1,16 @@
-"""Build a self-contained HTML viewer for model guesses on one dataset.
+"""Build a self-contained HTML viewer for model guesses.
 
 Reads `responses/<Model>_<dataset>_<timestamp>/` run folders plus the
 `dataset/<dataset>/metadata.json` they were scored against, and writes a single
 HTML file pairing every location's image with the truth, each model's guess and
 the model's own reasoning.
 
-    python -m visualizations.viewer.build --dataset poland
-    python visualizations/viewer/build.py -d poland --serve
+    python visualizations/viewer/build.py                 # every dataset with runs
+    python visualizations/viewer/build.py -d poland       # just one
+    python visualizations/viewer/build.py -d poland japan --serve
+
+With more than one dataset the page grows a dataset switcher and a cross-dataset
+comparison; everything else works the same.
 
 The output references dataset images by relative path, so it opens straight from
 disk (file://) with no server. Use --serve if your browser blocks that.
@@ -237,7 +241,19 @@ def discover_runs(responses_dir, dataset, only=None):
 
 # --- render -----------------------------------------------------------------
 
-def build_payload(dataset, dataset_dir, responses_dir, out_dir, only=None):
+def datasets_with_runs(dataset_root, responses_dir):
+    """Every dataset directory that at least one run folder refers to."""
+    if not responses_dir.is_dir():
+        raise SystemExit(f"no responses directory at {responses_dir}")
+    named = set()
+    for path in responses_dir.iterdir():
+        if path.is_dir():
+            named.update(path.name.split("_")[1:])
+    return sorted(d.name for d in dataset_root.iterdir()
+                  if d.is_dir() and d.name in named)
+
+
+def build_dataset(dataset, dataset_dir, responses_dir, out_dir, only=None):
     bounds, locations = load_dataset(dataset_dir)
     scale = scale_from_bounds(bounds)
 
@@ -266,7 +282,7 @@ def build_payload(dataset, dataset_dir, responses_dir, out_dir, only=None):
 
     models.sort(key=lambda m: (m["name"].lower(), m["run"]))
     return {
-        "dataset": dataset,
+        "name": dataset,
         "bounds": bounds,
         "scale": round(scale, 3) if scale else None,
         "locations": ordered,
@@ -285,10 +301,10 @@ def render(payload, out_path):
     return out_path
 
 
-def serve(out_path, dataset_dir, port):
+def serve(out_path, dataset_root, port):
     # The page points at dataset images *above* its own directory, so the server
     # has to be rooted where both live or every image 404s.
-    root = Path(os.path.commonpath([out_path.parent, dataset_dir]))
+    root = Path(os.path.commonpath([out_path.parent, dataset_root]))
     rel = out_path.relative_to(root).as_posix()
     handler = functools.partial(http.server.SimpleHTTPRequestHandler,
                                 directory=str(root))
@@ -305,8 +321,9 @@ def serve(out_path, dataset_dir, port):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("-d", "--dataset", default="poland",
-                    help="dataset name, e.g. poland (default: poland)")
+    ap.add_argument("-d", "--dataset", nargs="*", default=None, metavar="NAME",
+                    help="dataset name(s), e.g. poland japan "
+                         "(default: every dataset that has runs)")
     ap.add_argument("-m", "--models", nargs="*", default=None,
                     help="only include runs whose folder name contains these strings")
     ap.add_argument("--responses", type=Path, default=None,
@@ -314,7 +331,8 @@ def main():
     ap.add_argument("--dataset-root", type=Path, default=None,
                     help="dataset directory root (default: <repo>/dataset)")
     ap.add_argument("-o", "--out", type=Path, default=None,
-                    help="output path (default: visualizations/viewer/out/<dataset>.html)")
+                    help="output path (default: out/<dataset>.html, "
+                         "or out/geobench.html for several)")
     ap.add_argument("--serve", action="store_true",
                     help="serve the output over http and open a browser")
     ap.add_argument("--port", type=int, default=8020)
@@ -323,23 +341,33 @@ def main():
 
     responses_dir = (args.responses or REPO_ROOT / "responses").resolve()
     dataset_root = (args.dataset_root or REPO_ROOT / "dataset").resolve()
-    dataset_dir = dataset_root / args.dataset
-    if not dataset_dir.is_dir():
-        raise SystemExit(f"no dataset directory at {dataset_dir}")
+    if not dataset_root.is_dir():
+        raise SystemExit(f"no dataset directory at {dataset_root}")
 
-    out_path = (args.out or HERE / "out" / f"{args.dataset}.html").resolve()
+    names = args.dataset or datasets_with_runs(dataset_root, responses_dir)
+    if not names:
+        raise SystemExit(f"no dataset under {dataset_root} has runs in {responses_dir}")
+    for name in names:
+        if not (dataset_root / name).is_dir():
+            raise SystemExit(f"no dataset directory at {dataset_root / name}")
+
+    default_name = f"{names[0]}.html" if len(names) == 1 else "geobench.html"
+    out_path = (args.out or HERE / "out" / default_name).resolve()
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
-    payload = build_payload(args.dataset, dataset_dir, responses_dir,
-                            out_path.parent, args.models)
-    render(payload, out_path)
+    datasets = [build_dataset(name, dataset_root / name, responses_dir,
+                              out_path.parent, args.models)
+                for name in names]
+    render({"datasets": datasets}, out_path)
 
     print(f"{out_path}  ({out_path.stat().st_size / 1e6:.1f} MB)")
-    print(f"  {len(payload['locations'])} locations x {len(payload['models'])} models: "
-          + ", ".join(m["name"] for m in payload["models"]))
+    for ds in datasets:
+        print(f"  {ds['name']:<12} {len(ds['locations']):>3} locations x "
+              f"{len(ds['models'])} models: "
+              + ", ".join(m["name"] for m in ds["models"]))
 
     if args.serve:
-        serve(out_path, dataset_dir, args.port)
+        serve(out_path, dataset_root, args.port)
     elif args.open:
         webbrowser.open(out_path.as_uri())
 

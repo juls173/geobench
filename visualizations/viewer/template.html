@@ -104,6 +104,28 @@ a:hover { color: var(--accent); }
 .views button + button { border-left: 1px solid var(--ink); }
 .views button[aria-selected="true"] { background: var(--ink); color: var(--paper); }
 
+/* ---- dataset bar -------------------------------------------------------- */
+.datasetbar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-wrap: wrap;
+  padding: 8px var(--gutter) 9px;
+  border-bottom: 1px solid var(--rule);
+  background: var(--ink);
+}
+.datasetbar > .label { color: #86827b; margin-right: 12px; }
+.dtab {
+  padding: 4px 10px 5px;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: #b4b0a8;
+}
+.dtab:hover { color: #fff; }
+.dtab[aria-selected="true"] { background: var(--accent); color: #fff; }
+
 /* ---- model bar ---------------------------------------------------------- */
 .modelbar {
   display: flex;
@@ -303,6 +325,9 @@ a:hover { color: var(--accent); }
   letter-spacing: -.02em;
 }
 .slabhead .sub { font-size: 11px; color: var(--ink-3); font-family: var(--mono); }
+.mapopts { display: flex; gap: 18px; white-space: nowrap; }
+.mapopts label { cursor: pointer; }
+.mapopts input { vertical-align: -1px; margin-right: 6px; }
 
 .frames {
   display: grid;
@@ -612,7 +637,17 @@ table.data tr.sel td { background: var(--paper); }
 table.data tr.sel td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
 /* Column leader: weight, not hue — red stays reserved for the guess mark. */
 table.data td.best { color: var(--ink); font-weight: 600; }
-.tablenote { padding: 10px var(--gutter) 0; font-size: 10.5px; color: var(--ink-3); }
+.tablenote {
+  padding: 12px var(--gutter) 0;
+  font-size: 10.5px;
+  line-height: 1.5;
+  color: var(--ink-3);
+  max-width: 92ch;
+}
+table.data td.barcell { width: 140px; padding-right: var(--gutter); }
+.minibar { display: block; height: 6px; background: var(--rule-2); }
+.minibar span { display: block; height: 100%; background: #3d3a35; }
+tr.sel .minibar span { background: var(--accent); }
 
 /* ---- lightbox ----------------------------------------------------------- */
 .lightbox {
@@ -680,6 +715,7 @@ table.data td.best { color: var(--ink); font-weight: 600; }
   </nav>
 </header>
 
+<div class="datasetbar" id="datasetbar" hidden></div>
 <div class="modelbar" id="modelbar" role="tablist"></div>
 <div class="statband" id="statband"></div>
 
@@ -716,9 +752,7 @@ const DATA = /*__DATA__*/;
 
 /* ============================ derive ==================================== */
 
-const LOCS = DATA.locations;
-const MODELS = DATA.models;
-const LOC_INDEX = new Map(LOCS.map((l, i) => [l.id, i]));
+const DATASETS = DATA.datasets;
 
 // geobench.py takes the upper-middle element rather than averaging the pair;
 // mirror it so this view never contradicts the run's own summary.json.
@@ -726,40 +760,64 @@ const median = a => a.length ? [...a].sort((x, y) => x - y)[a.length >> 1] : nul
 const mean = a => a.length ? a.reduce((x, y) => x + y, 0) / a.length : null;
 const KM_PER_DEG = 111.32;
 
-for (const m of MODELS) {
-  const rows = LOCS.map(l => m.guesses[l.id]).filter(Boolean);
-  const scored = rows.filter(g => !g.refused && g.km != null);
-  const km = scored.map(g => g.km);
-  m.stats = {
-    n: rows.length,
-    scored: scored.length,
-    refused: rows.filter(g => g.refused).length,
-    countryOk: rows.filter(g => g.countryOk).length,
-    medKm: median(km),
-    meanKm: mean(km),
-    medScore: median(scored.map(g => g.score)),
-    // Refusals score 0 but are excluded from the distance/score averages,
-    // exactly as geobench.py reports them.
-    meanScore: mean(scored.map(g => g.score)),
-    // North / east offset in km, to expose systematic pull toward a region.
-    biasN: mean(scored.map(g => (g.lat - LOCS[LOC_INDEX.get(g.id)].lat) * KM_PER_DEG)),
-    biasE: mean(scored.map(g => (g.lng - LOCS[LOC_INDEX.get(g.id)].lng) * KM_PER_DEG *
-      Math.cos(LOCS[LOC_INDEX.get(g.id)].lat * Math.PI / 180))),
-    outTok: mean(rows.filter(g => g.outTok).map(g => g.outTok)),
-    latency: mean(rows.filter(g => g.latency).map(g => g.latency)),
-    wins: 0,
-  };
+/* Derived per dataset, on first visit — with eleven of them there is no reason
+   to crunch the ones nobody opens. */
+function prepare(ds) {
+  if (ds.ready) return ds;
+  const locs = ds.locations;
+  const index = new Map(locs.map((l, i) => [l.id, i]));
+
+  for (const m of ds.models) {
+    const rows = locs.map(l => m.guesses[l.id]).filter(Boolean);
+    const scored = rows.filter(g => !g.refused && g.km != null);
+    m.stats = {
+      n: rows.length,
+      scored: scored.length,
+      refused: rows.filter(g => g.refused).length,
+      countryOk: rows.filter(g => g.countryOk).length,
+      medKm: median(scored.map(g => g.km)),
+      meanKm: mean(scored.map(g => g.km)),
+      medScore: median(scored.map(g => g.score)),
+      // Refusals score 0 but are excluded from the distance/score averages,
+      // exactly as geobench.py reports them.
+      meanScore: mean(scored.map(g => g.score)),
+      // North / east offset in km, to expose systematic pull toward a region.
+      biasN: mean(scored.map(g => (g.lat - locs[index.get(g.id)].lat) * KM_PER_DEG)),
+      biasE: mean(scored.map(g => (g.lng - locs[index.get(g.id)].lng) * KM_PER_DEG *
+        Math.cos(locs[index.get(g.id)].lat * Math.PI / 180))),
+      outTok: mean(rows.filter(g => g.outTok).map(g => g.outTok)),
+      latency: mean(rows.filter(g => g.latency).map(g => g.latency)),
+      wins: 0,
+    };
+  }
+
+  // Per-location ranking across models: who was closest here.
+  const ranks = new Map();
+  for (const loc of locs) {
+    const entries = ds.models
+      .map((m, i) => ({ i, g: m.guesses[loc.id] }))
+      .filter(e => e.g && !e.g.refused && e.g.km != null)
+      .sort((a, b) => a.g.km - b.g.km);
+    ranks.set(loc.id, entries.map(e => e.i));
+    if (entries.length) ds.models[entries[0].i].stats.wins++;
+  }
+
+  ds.index = index;
+  ds.ranks = ranks;
+  ds.ready = true;
+  return ds;
 }
 
-// Per-location ranking across models: who was closest here.
-const RANKS = new Map();
-for (const loc of LOCS) {
-  const entries = MODELS
-    .map((m, i) => ({ i, g: m.guesses[loc.id] }))
-    .filter(e => e.g && !e.g.refused && e.g.km != null)
-    .sort((a, b) => a.g.km - b.g.km);
-  RANKS.set(loc.id, entries.map(e => e.i));
-  if (entries.length) MODELS[entries[0].i].stats.wins++;
+/* The rest of the page reads these four bindings; switching dataset repoints
+   them rather than threading a dataset argument through every function. */
+let D, LOCS, MODELS, LOC_INDEX, RANKS;
+
+function useDataset(i) {
+  D = prepare(DATASETS[i]);
+  LOCS = D.locations;
+  MODELS = D.models;
+  LOC_INDEX = D.index;
+  RANKS = D.ranks;
 }
 
 /* ============================ state ===================================== */
@@ -779,6 +837,7 @@ const SORTS = [
 ];
 
 const S = {
+  ds: 0,
   model: 0,
   loc: 0,
   view: 'browse',
@@ -788,7 +847,9 @@ const S = {
   query: '',
   bin: null,
   tableSort: { key: 'medKm', dir: 1 },
+  dsSort: { key: 'bestKm', dir: 1 },
   connectors: true,
+  fitAll: false,
 };
 
 const $ = sel => document.querySelector(sel);
@@ -830,6 +891,18 @@ const esc = s => String(s ?? '').replace(/[&<>"]/g, c =>
 const curModel = () => MODELS[S.model];
 const curLoc = () => LOCS[S.loc];
 const guessOf = (mi, loc) => MODELS[mi].guesses[loc.id];
+
+/* Datasets have different models and different location counts, so keep the
+   selection on a name where possible and clamp it where not. */
+function setDataset(i, keepModelName) {
+  const wanted = keepModelName ?? (MODELS && MODELS[S.model]?.name);
+  useDataset(i);
+  S.ds = i;
+  const at = MODELS.findIndex(m => m.name === wanted);
+  S.model = at >= 0 ? at : 0;
+  S.loc = Math.min(S.loc, LOCS.length - 1);
+  S.bin = null;
+}
 
 /* the models shown for the current location: one, or all in compare mode */
 const activeModels = () => S.compare ? MODELS.map((_, i) => i) : [S.model];
@@ -913,11 +986,23 @@ function scrollStage() {
 function renderHeader() {
   const m = curModel();
   $('#mhmeta').replaceChildren(
-    metaItem('Dataset', DATA.dataset.toUpperCase()),
+    metaItem('Dataset', D.name.toUpperCase()),
     metaItem('Locations', String(LOCS.length)),
     metaItem('Models', String(MODELS.length)),
     metaItem('Prompt', m.promptMode),
-    metaItem('Scale', DATA.scale ? `${fmt(DATA.scale)} km` : '—'));
+    metaItem('Scale', D.scale ? `${fmt(D.scale)} km` : '—'));
+
+  const bar = $('#datasetbar');
+  bar.hidden = DATASETS.length < 2;
+  if (!bar.hidden) {
+    bar.replaceChildren(
+      el('span', { class: 'label', text: 'Dataset' }),
+      ...DATASETS.map((ds, i) => el('button', {
+        class: 'dtab', 'aria-selected': i === S.ds,
+        onclick: () => { setDataset(i); render(); },
+        text: ds.name,
+      })));
+  }
 
   $('#modelbar').replaceChildren(
     ...MODELS.map((mm, i) => el('button', {
@@ -958,7 +1043,7 @@ function render() {
   renderHeader();
   renderRail();
   if (S.view === 'browse') renderBrowse(); else renderOverview();
-  const hash = `#m=${S.model}&l=${curLoc().id}${S.compare ? '&c=1' : ''}` +
+  const hash = `#d=${D.name}&m=${S.model}&l=${curLoc().id}${S.compare ? '&c=1' : ''}` +
     (S.view === 'overview' ? '&v=o' : '');
   // Chrome refuses replaceState on file:// URLs; the deep link is optional.
   try { history.replaceState(null, '', hash); }
@@ -1001,7 +1086,7 @@ function photoFigure(loc) {
     loc.pano ? 'pano ' + loc.pano.slice(0, 10) + '…' : '',
   ].filter(Boolean);
   const fig = el('figure', { class: 'photo' },
-    el('span', { class: 'idtag', text: DATA.dataset.toUpperCase() + ' / ' + loc.id }),
+    el('span', { class: 'idtag', text: D.name.toUpperCase() + ' / ' + loc.id }),
     el('img', {
       src: loc.src, alt: `Street View at location ${loc.id}`, loading: 'eager',
       onclick: () => openLightbox(loc),
@@ -1134,11 +1219,13 @@ function lastSentence(text) {
 const footer = () => el('div', { class: 'foot' },
   el('span', {}, el('kbd', {}, '←'), ' ', el('kbd', {}, '→'), ' location'),
   el('span', {}, el('kbd', {}, '['), ' ', el('kbd', {}, ']'), ' model'),
+  DATASETS.length > 1
+    ? el('span', {}, el('kbd', {}, ','), ' ', el('kbd', {}, '.'), ' dataset') : null,
   el('span', {}, el('kbd', {}, 'c'), ' compare'),
   el('span', {}, el('kbd', {}, 'o'), ' overview'),
   el('span', {}, el('kbd', {}, 'f'), ' full image'),
   el('span', {}, el('kbd', {}, '/'), ' search'),
-  el('span', { text: `Scores use the GeoGuessr curve at scale ${DATA.scale ?? '—'} km — comparable within this dataset only.` }));
+  el('span', { text: `Scores use ${D.name}'s own GeoGuessr scale of ${D.scale ?? '—'} km — comparable within this dataset only.` }));
 
 /* ============================ maps ====================================== */
 
@@ -1186,14 +1273,16 @@ function mountMap(loc, mine) {
     pts.push([g.lat, g.lng]);
   });
 
-  if (pts.length > 1) MAP.fitBounds(L.latLngBounds(pts).pad(0.28));
+  // Cap the zoom: a 20 km error would otherwise fit to street level, which
+  // tells you nothing about where in the country the model landed.
+  if (pts.length > 1) MAP.fitBounds(L.latLngBounds(pts).pad(0.28), { maxZoom: 8 });
   else MAP.setView([loc.lat, loc.lng], 7);
   setTimeout(() => MAP && MAP.invalidateSize(), 30);
 }
 
 /* Plain SVG plot so the tool still works with no network for tiles. */
 function fallbackMap(node, loc, mine) {
-  const b = DATA.bounds, W = node.clientWidth || 380, H = 340;
+  const b = D.bounds, W = node.clientWidth || 380, H = 340;
   const x = lng => (lng - b.min.lng) / (b.max.lng - b.min.lng) * (W - 24) + 12;
   const y = lat => H - 12 - (lat - b.min.lat) / (b.max.lat - b.min.lat) * (H - 24);
   const parts = LOCS.map(l => `<circle cx="${x(l.lng)}" cy="${y(l.lat)}" r="1.6" fill="#c9c6c0"/>`);
@@ -1216,12 +1305,17 @@ function renderOverview() {
     el('div', { class: 'slab' },
       el('div', { class: 'slabhead' },
         el('h2', { text: `All ${LOCS.length} guesses — ${S.compare ? 'every model' : curModel().name}` }),
-        el('span', { class: 'sub' },
-          el('label', { style: 'cursor:pointer' },
+        el('span', { class: 'sub mapopts' },
+          el('label', {},
             el('input', {
-              type: 'checkbox', checked: S.connectors, style: 'vertical-align:-1px;margin-right:6px',
+              type: 'checkbox', checked: S.connectors,
               onchange: e => { S.connectors = e.target.checked; renderOverview(); },
-            }), 'error lines'))),
+            }), 'error lines'),
+          el('label', { title: 'A single wild guess otherwise zooms the map out to a continent' },
+            el('input', {
+              type: 'checkbox', checked: S.fitAll,
+              onchange: e => { S.fitAll = e.target.checked; renderOverview(); },
+            }), 'fit stray guesses'))),
       el('div', { class: 'ovgrid' },
         el('div', { class: 'ovmap' }, el('div', { id: 'omap' })),
         el('div', { class: 'ovside' },
@@ -1233,8 +1327,8 @@ function renderOverview() {
           el('div', { class: 'panel', style: 'border-bottom:0' },
             el('span', { class: 'label', text: 'Error distribution' }),
             el('p', { class: 'cap', text:
-              'Great-circle distance from guess to truth, 25 km bins. The red bar is the '
-              + 'bin holding the selected location; click any bar to filter the list.' }),
+              `Great-circle distance from guess to truth, ${fmt(binSize())} km bins. The red `
+              + 'bar is the bin holding the selected location; click any bar to filter the list.' }),
             el('div', { class: 'chartwrap', id: 'hist2' }))))),
     el('div', { class: 'slab' },
       el('div', { class: 'slabhead' },
@@ -1243,6 +1337,7 @@ function renderOverview() {
       modelTable(),
       el('p', { class: 'tablenote', text:
         'Wins = locations where that model made the closest guess. Country % excludes nothing; refusals count as wrong.' })),
+    DATASETS.length > 1 ? datasetSlab() : null,
     footer());
 
   mountOverviewMap();
@@ -1304,11 +1399,99 @@ function modelTable() {
     })));
 }
 
+/* ---- across datasets ---------------------------------------------------- */
+
+function datasetSlab() {
+  const name = curModel().name;
+  const rows = DATASETS.map((ds, i) => {
+    prepare(ds);
+    const best = [...ds.models].sort(
+      (a, b) => (a.stats.medKm ?? Infinity) - (b.stats.medKm ?? Infinity))[0];
+    const mine = ds.models.find(m => m.name === name);
+    return { i, ds, best, mine };
+  });
+
+  const worstMed = Math.max(1, ...rows.map(r => r.best?.stats.medKm ?? 0));
+  const sorted = [...rows].sort((a, b) => {
+    const k = S.dsSort.key;
+    const get = r => k === 'name' ? r.ds.name
+      : k === 'scale' ? (r.ds.scale ?? 0)
+      : k === 'mineKm' ? (r.mine?.stats.medKm ?? Infinity)
+      : k === 'minePts' ? (r.mine?.stats.medScore ?? -1)
+      : (r.best?.stats.medKm ?? Infinity);
+    const va = get(a), vb = get(b);
+    return S.dsSort.dir * (k === 'name' ? String(va).localeCompare(String(vb)) : va - vb);
+  });
+
+  const head = (key, label) => el('th', {
+    text: label + (S.dsSort.key === key ? (S.dsSort.dir > 0 ? ' ↑' : ' ↓') : ''),
+    onclick: () => {
+      S.dsSort = S.dsSort.key === key
+        ? { key, dir: -S.dsSort.dir }
+        : { key, dir: key === 'minePts' ? -1 : 1 };
+      renderOverview();
+    },
+  });
+
+  return el('div', { class: 'slab' },
+    el('div', { class: 'slabhead' },
+      el('h2', { text: 'Across datasets' }),
+      el('span', { class: 'sub', text: 'click a row to open that dataset' })),
+    el('table', { class: 'data' },
+      el('thead', {}, el('tr', {},
+        head('name', 'Dataset'),
+        el('th', { text: 'Locations' }),
+        el('th', { text: 'Models' }),
+        head('scale', 'Scale km'),
+        el('th', { text: 'Best model' }),
+        head('bestKm', 'Best med km'),
+        head('mineKm', name + ' km'),
+        head('minePts', name + ' pts'),
+        el('th', { text: 'Difficulty' }))),
+      el('tbody', {}, ...sorted.map(r => el('tr', {
+        class: r.i === S.ds ? 'sel' : '',
+        onclick: () => { setDataset(r.i, name); render(); },
+      },
+        el('td', { text: r.ds.name }),
+        el('td', { text: String(r.ds.locations.length) }),
+        el('td', { text: String(r.ds.models.length) }),
+        el('td', { text: fmt(r.ds.scale) }),
+        el('td', { style: 'font-family:var(--sans);font-size:12px', text: r.best?.name ?? '—' }),
+        el('td', { text: km(r.best?.stats.medKm) }),
+        el('td', { text: r.mine ? km(r.mine.stats.medKm) : '—' }),
+        el('td', { text: r.mine ? fmt(r.mine.stats.medScore) : '—' }),
+        el('td', { class: 'barcell' },
+          el('span', { class: 'minibar' },
+            el('span', {
+              style: `width:${100 * (r.best?.stats.medKm ?? 0) / worstMed}%`,
+            })))))))
+    ,
+    el('p', { class: 'tablenote', text:
+      'Difficulty is the best model\'s median error, so it reflects the country as much as '
+      + 'the model — a large country makes large errors possible. Points normalise for that '
+      + '(each dataset scores on its own scale), but a perfect guess is worth more on a big '
+      + 'map, so neither column is a clean ranking on its own.' }));
+}
+
 function mountOverviewMap() {
   const node = $('#omap');
   if (typeof L === 'undefined') { node.textContent = 'Map tiles unavailable offline.'; return; }
   if (OMAP) { OMAP.remove(); OMAP = null; }
+
+  // Chile is 4x taller than it is wide; a fixed landscape panel would squeeze it
+  // into a thread. Give the panel roughly the dataset's own proportions.
+  const b = D.bounds;
+  if (b?.min && b?.max) {
+    const mid = (b.min.lat + b.max.lat) / 2;
+    const lng = Math.abs(b.max.lng - b.min.lng) * Math.cos(mid * Math.PI / 180);
+    const lat = Math.abs(b.max.lat - b.min.lat);
+    const w = node.parentElement.clientWidth || 900;
+    const h = Math.max(500, Math.min(820, Math.round(w * (lat / (lng || 1)))));
+    node.parentElement.style.minHeight = h + 'px';
+  }
   OMAP = baseMap('omap');
+  // Frame the dataset, not the outliers: one guess on another continent would
+  // otherwise shrink every real point into a smudge.
   const pts = [];
 
   for (const loc of LOCS) {
@@ -1329,10 +1512,10 @@ function mountOverviewMap() {
         .addTo(OMAP)
         .bindTooltip(`${MODELS[mi].name} → ${loc.id} · ${km(g.km)} km`)
         .on('click', () => { S.loc = LOC_INDEX.get(loc.id); S.model = mi; S.view = 'browse'; render(); });
-      pts.push([g.lat, g.lng]);
+      if (S.fitAll) pts.push([g.lat, g.lng]);
     }
   }
-  OMAP.fitBounds(L.latLngBounds(pts).pad(0.05));
+  OMAP.fitBounds(L.latLngBounds(pts).pad(S.fitAll ? 0.05 : 0.12));
   setTimeout(() => OMAP && OMAP.invalidateSize(), 30);
 }
 
@@ -1348,10 +1531,23 @@ function showTip(e, text) {
 }
 const hideTip = () => { tip.style.opacity = 0; };
 
-const BIN = 25, BINS = 16; // 0–400 km, then an overflow bucket
+const BINS = 16;                                        // plus one overflow bucket
+const LADDER = [5, 10, 25, 50, 100, 150, 200, 250, 500, 1000, 2000];
+
+/* Poland's errors live under 400 km, Mongolia's mostly above it. A fixed 25 km
+   bin turns one of them into a single overflow bar, so size the bin per model. */
+function binSize() {
+  const errs = LOCS.map(l => guessOf(S.model, l))
+    .filter(g => g && g.km != null && !g.refused)
+    .map(g => g.km).sort((a, b) => a - b);
+  if (!errs.length) return LADDER[2];
+  const p92 = errs[Math.min(errs.length - 1, Math.floor(errs.length * 0.92))];
+  return LADDER.find(v => v * BINS >= p92) ?? LADDER[LADDER.length - 1];
+}
 
 function drawHistogram(node, big = false) {
   if (!node) return;
+  const BIN = binSize();
   const gs = LOCS.map(l => guessOf(S.model, l)).filter(g => g && g.km != null && !g.refused);
   const counts = new Array(BINS + 1).fill(0);
   for (const g of gs) counts[Math.min(BINS, Math.floor(g.km / BIN))]++;
@@ -1391,10 +1587,11 @@ function drawHistogram(node, big = false) {
     svg.appendChild(r);
   });
 
-  [0, 100, 200, 300, 400].forEach(v => svg.appendChild(mk('text', {
+  const top = BIN * BINS;
+  [0, top / 4, top / 2, (3 * top) / 4, top].forEach((v, i, arr) => svg.appendChild(mk('text', {
     x: padL + (v / BIN) * bw, y: H - 4, class: 'axis',
-    'text-anchor': v === 400 ? 'end' : v === 0 ? 'start' : 'middle',
-    text: v === 400 ? '400+' : String(v),
+    'text-anchor': i === arr.length - 1 ? 'end' : i === 0 ? 'start' : 'middle',
+    text: i === arr.length - 1 ? `${fmt(v)}+` : fmt(v),
   })));
   svg.appendChild(mk('text', {
     x: W, y: 9, class: 'axis', 'text-anchor': 'end', text: `max ${max} in a bin`,
@@ -1469,7 +1666,7 @@ function openLightbox(loc) {
   const box = $('#lightbox');
   box.querySelector('img').src = loc.src;
   box.querySelector('.cap').textContent =
-    `${DATA.dataset.toUpperCase()} / ${loc.id} · ${coord(loc.lat, loc.lng)} · ${loc.date ?? ''}`;
+    `${D.name.toUpperCase()} / ${loc.id} · ${coord(loc.lat, loc.lng)} · ${loc.date ?? ''}`;
   box.dataset.open = '1';
 }
 $('#lightbox').addEventListener('click', () => { $('#lightbox').dataset.open = '0'; });
@@ -1491,6 +1688,8 @@ document.addEventListener('keydown', e => {
   else if (k === 'ArrowLeft' || k === 'k') { e.preventDefault(); step(-1); }
   else if (k === ']') { S.model = (S.model + 1) % MODELS.length; S.compare = false; render(); }
   else if (k === '[') { S.model = (S.model - 1 + MODELS.length) % MODELS.length; S.compare = false; render(); }
+  else if (k === '.') { setDataset((S.ds + 1) % DATASETS.length); render(); }
+  else if (k === ',') { setDataset((S.ds - 1 + DATASETS.length) % DATASETS.length); render(); }
   else if (k === 'c') { S.compare = !S.compare; render(); }
   else if (k === 'o') { S.view = S.view === 'overview' ? 'browse' : 'overview'; render(); }
   else if (k === 'f' && S.view === 'browse') openLightbox(curLoc());
@@ -1505,9 +1704,13 @@ $('#q').addEventListener('input', e => {
 document.querySelectorAll('.views button').forEach(b =>
   b.addEventListener('click', () => { S.view = b.dataset.view; render(); }));
 
-/* deep link: #m=0&l=12&c=1&v=o */
+/* deep link: #d=poland&m=0&l=12&c=1&v=o */
 (function fromHash() {
   const h = new URLSearchParams(location.hash.slice(1));
+  const at = DATASETS.findIndex(ds => ds.name === h.get('d'));
+  useDataset(at >= 0 ? at : 0);
+  S.ds = at >= 0 ? at : 0;
+
   const m = Number(h.get('m'));
   if (Number.isInteger(m) && MODELS[m]) S.model = m;
   if (h.has('l') && LOC_INDEX.has(h.get('l'))) S.loc = LOC_INDEX.get(h.get('l'));
