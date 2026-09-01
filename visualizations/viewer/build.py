@@ -285,14 +285,17 @@ def render(payload, out_path):
     return out_path
 
 
-def serve(out_path, port):
-    root = out_path.parent
+def serve(out_path, dataset_dir, port):
+    # The page points at dataset images *above* its own directory, so the server
+    # has to be rooted where both live or every image 404s.
+    root = Path(os.path.commonpath([out_path.parent, dataset_dir]))
+    rel = out_path.relative_to(root).as_posix()
     handler = functools.partial(http.server.SimpleHTTPRequestHandler,
                                 directory=str(root))
     socketserver.TCPServer.allow_reuse_address = True
     with socketserver.TCPServer(("127.0.0.1", port), handler) as httpd:
-        url = f"http://127.0.0.1:{port}/{out_path.name}"
-        print(f"serving {root} -> {url}  (ctrl-c to stop)")
+        url = f"http://127.0.0.1:{port}/{rel}"
+        print(f"serving {root}\n  open {url}\n  (ctrl-c to stop)", flush=True)
         webbrowser.open(url)
         try:
             httpd.serve_forever()
@@ -336,7 +339,7 @@ def main():
           + ", ".join(m["name"] for m in payload["models"]))
 
     if args.serve:
-        serve(out_path, args.port)
+        serve(out_path, dataset_dir, args.port)
     elif args.open:
         webbrowser.open(out_path.as_uri())
 

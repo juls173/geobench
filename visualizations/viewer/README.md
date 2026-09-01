@@ -5,9 +5,9 @@ location against each model's guess on a map, and the model's own reasoning for
 why it landed there.
 
 ```bash
-python visualizations/viewer/build.py -d poland          # -> out/poland.html
-python visualizations/viewer/build.py -d poland --open    # ...and open it
-python visualizations/viewer/build.py -d japan --serve    # over http, if file:// is blocked
+python visualizations/viewer/build.py -d poland           # -> out/poland.html
+python visualizations/viewer/build.py -d poland --open     # ...and open it
+python visualizations/viewer/build.py -d poland --serve    # over http instead
 ```
 
 `build.py` picks up **every** run in `responses/` whose folder name carries that
@@ -20,6 +20,23 @@ so the file stays under a megabyte and opens straight off disk. It reads
 `results/detailed.csv`, `results/summary.json`, `output/<id>.txt` and — where the
 provider recorded them — token counts and latency from `json/<id>.json`.
 `out/` is gitignored; regenerate rather than commit.
+
+## Opening it
+
+**On the machine with a desktop** — `--open`, or `xdg-open
+visualizations/viewer/out/poland.html`. No server needed: the images are
+referenced by relative path and load fine over `file://`.
+
+**Over SSH** — `--serve` starts a local server on 127.0.0.1 and prints the URL.
+It roots itself high enough to cover both the page and `dataset/`, so forward the
+port and open that URL on your own machine:
+
+```bash
+python visualizations/viewer/build.py -d poland --serve      # on the remote box
+ssh -L 8020:127.0.0.1:8020 <host>                            # from your laptop
+```
+
+It binds to loopback only — the dataset is not exposed to the network.
 
 ## What's in it
 
