@@ -1,0 +1,1525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GeoBench — Guess Viewer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+/* ---------------------------------------------------------------------------
+   International Typographic Style: strict grid, hairline rules, flush-left
+   type, one accent. Black ink on warm paper; nothing decorative.
+   --------------------------------------------------------------------------- */
+:root {
+  --paper:   #f2f1ee;
+  --surface: #ffffff;
+  --ink:     #111111;
+  --ink-2:   #56534e;
+  --ink-3:   #8d8983;
+  --rule:    #d8d5cf;
+  --rule-2:  #ebe9e5;
+  --accent:  #d81e05;
+  --good:    #1a6b3c;
+
+  --rail: 288px;
+  --gutter: 24px;
+  --unit: 8px;
+
+  --sans: "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 14px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: "tnum" 1, "cv05" 1;
+}
+button, input, select { font: inherit; color: inherit; }
+button { background: none; border: 0; padding: 0; cursor: pointer; }
+a { color: var(--ink); text-underline-offset: 2px; }
+a:hover { color: var(--accent); }
+
+.label {
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.hr { border: 0; border-top: 1px solid var(--rule); margin: 0; }
+
+/* ---- masthead ----------------------------------------------------------- */
+.masthead {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: end;
+  gap: var(--gutter);
+  padding: 18px var(--gutter) 12px;
+  border-bottom: 2px solid var(--ink);
+  background: var(--paper);
+}
+.brand {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -.035em;
+  line-height: 1;
+  white-space: nowrap;
+}
+.brand b { color: var(--accent); font-weight: 700; }
+.brand span {
+  display: block;
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: .22em;
+  color: var(--ink-2);
+  margin-top: 5px;
+}
+.masthead-meta {
+  display: flex;
+  gap: 28px;
+  flex-wrap: wrap;
+  padding-bottom: 2px;
+}
+.masthead-meta div { display: flex; flex-direction: column; gap: 3px; }
+.masthead-meta b { font-size: 13px; font-weight: 500; letter-spacing: -.01em; }
+.views { display: flex; border: 1px solid var(--ink); }
+.views button {
+  padding: 7px 15px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+}
+.views button + button { border-left: 1px solid var(--ink); }
+.views button[aria-selected="true"] { background: var(--ink); color: var(--paper); }
+
+/* ---- model bar ---------------------------------------------------------- */
+.modelbar {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  padding: 0 var(--gutter);
+  border-bottom: 1px solid var(--rule);
+  background: var(--surface);
+  overflow-x: auto;
+}
+.mtab {
+  position: relative;
+  padding: 11px 20px 10px 0;
+  margin-right: 22px;
+  text-align: left;
+  white-space: nowrap;
+  border-bottom: 3px solid transparent;
+  color: var(--ink-3);
+}
+.mtab strong {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -.015em;
+  color: var(--ink-2);
+}
+.mtab em {
+  font-family: var(--mono);
+  font-style: normal;
+  font-size: 10.5px;
+  letter-spacing: 0;
+}
+.mtab:hover strong { color: var(--ink); }
+.mtab[aria-selected="true"] { border-bottom-color: var(--accent); color: var(--ink); }
+.mtab[aria-selected="true"] strong { color: var(--ink); }
+.mtab .idx {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--ink-3);
+  margin-right: 6px;
+}
+.modelbar .spacer { flex: 1; min-width: 20px; }
+.toggle {
+  align-self: center;
+  border: 1px solid var(--ink);
+  padding: 6px 13px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.toggle[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+
+/* ---- stat band ---------------------------------------------------------- */
+.statband {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(112px, 1fr));
+  border-bottom: 1px solid var(--rule);
+  background: var(--surface);
+}
+.stat {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 12px var(--gutter) 14px;
+  border-left: 1px solid var(--rule-2);
+}
+.stat:first-child { border-left: 0; }
+/* Reserve two label lines so the figures sit on one baseline when a label wraps. */
+.stat .label { display: block; min-height: 2.4em; margin-bottom: 6px; }
+.stat b {
+  font-family: var(--mono);
+  font-size: 21px;
+  font-weight: 500;
+  letter-spacing: -.02em;
+  line-height: 1;
+}
+.stat i {
+  font-style: normal;
+  font-size: 10.5px;
+  color: var(--ink-3);
+  font-family: var(--mono);
+  margin-left: 3px;
+}
+
+/* ---- app shell ---------------------------------------------------------- */
+.app {
+  display: grid;
+  grid-template-columns: var(--rail) minmax(0, 1fr);
+  align-items: start;
+}
+/* Full-height sticky column: only the location list scrolls, so the stage
+   beside it stays free to be as tall as the reasoning needs. */
+.rail {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--rule);
+  background: var(--surface);
+}
+.stage { min-width: 0; padding: 0 0 60px; }
+
+/* ---- rail --------------------------------------------------------------- */
+.railhead { padding: 14px var(--gutter) 12px; border-bottom: 1px solid var(--rule-2); }
+.search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px solid var(--ink);
+  padding-bottom: 5px;
+}
+.search input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: none;
+  font-size: 13px;
+  padding: 2px 0;
+}
+.search input::placeholder { color: var(--ink-3); }
+.search .k { font-family: var(--mono); font-size: 10px; color: var(--ink-3); }
+.chips { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 11px; }
+.chip {
+  border: 1px solid var(--rule);
+  padding: 3px 8px;
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+.chip:hover { border-color: var(--ink); color: var(--ink); }
+.chip[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+.railcount {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px var(--gutter);
+  border-bottom: 1px solid var(--rule-2);
+  background: var(--paper);
+}
+
+.loclist { flex: 1 1 auto; min-height: 0; overflow-y: auto; }
+.locrow {
+  display: grid;
+  grid-template-columns: 30px 1fr 62px;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  padding: 7px var(--gutter) 7px calc(var(--gutter) - 3px);
+  border-left: 3px solid transparent;
+  border-bottom: 1px solid var(--rule-2);
+  text-align: left;
+}
+.locrow:hover { background: var(--paper); }
+.locrow .id { font-family: var(--mono); font-size: 11px; color: var(--ink-3); }
+.locrow .km {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.locrow .track { height: 6px; background: var(--rule-2); }
+.locrow .fill { display: block; height: 100%; background: #3d3a35; }
+.locrow[aria-current="true"] {
+  background: var(--ink);
+  border-left-color: var(--accent);
+  color: var(--surface);
+}
+.locrow[aria-current="true"] .id,
+.locrow[aria-current="true"] .km { color: var(--surface); }
+.locrow[aria-current="true"] .track { background: rgba(255,255,255,.18); }
+.locrow[aria-current="true"] .fill { background: var(--accent); }
+.locrow.miss .id { color: var(--accent); font-weight: 600; }
+.locrow.miss .fill { background: var(--accent); }
+
+.railfoot { flex: none; border-top: 1px solid var(--rule); padding: 14px var(--gutter) 18px; }
+.railfoot .label { display: block; margin-bottom: 10px; }
+
+/* ---- stage: browse ------------------------------------------------------ */
+.slab { border-bottom: 1px solid var(--rule); background: var(--surface); }
+.slabhead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 11px var(--gutter) 10px;
+  border-bottom: 1px solid var(--rule-2);
+}
+.slabhead h2 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -.02em;
+}
+.slabhead .sub { font-size: 11px; color: var(--ink-3); font-family: var(--mono); }
+
+.frames {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(300px, 1fr);
+}
+.photo { position: relative; margin: 0; background: #16150f; min-width: 0; }
+.photo img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  cursor: zoom-in;
+}
+.photo figcaption {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  display: flex;
+  gap: 1px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: .02em;
+}
+.photo figcaption span {
+  background: rgba(17,17,17,.82);
+  color: #fff;
+  padding: 5px 9px;
+}
+.photo .idtag {
+  position: absolute;
+  top: 0;
+  left: 0;
+  background: var(--accent);
+  color: #fff;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 500;
+  padding: 5px 10px;
+}
+.mappanel { position: relative; border-left: 1px solid var(--rule); min-width: 0; }
+#map, #omap { width: 100%; height: 100%; background: var(--rule-2); }
+#map { min-height: 300px; }
+.maplegend {
+  position: absolute;
+  right: 10px;
+  bottom: 24px;
+  z-index: 500;
+  background: rgba(255,255,255,.94);
+  border: 1px solid var(--rule);
+  padding: 8px 10px;
+  display: grid;
+  gap: 5px;
+}
+.maplegend div { display: flex; align-items: center; gap: 7px; font-size: 10.5px; }
+.swatch { width: 11px; height: 11px; flex: none; }
+.swatch.truth { background: var(--ink); }
+.swatch.guess { background: var(--accent); border-radius: 50%; }
+.swatch.other { background: #fff; border: 2px solid var(--ink-2); border-radius: 50%; }
+
+/* leaflet marks */
+.mk { display: block; }
+.mk-truth {
+  width: 13px; height: 13px;
+  background: var(--ink);
+  box-shadow: 0 0 0 2px #fff;
+}
+.mk-guess {
+  width: 13px; height: 13px;
+  background: var(--accent);
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px #fff;
+}
+.mk-other {
+  width: 15px; height: 15px;
+  background: #fff;
+  border: 2px solid var(--ink);
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px #fff;
+  font: 500 9px/11px var(--mono);
+  color: var(--ink);
+  text-align: center;
+}
+.mk-dot { width: 7px; height: 7px; background: var(--ink); border-radius: 50%; }
+.mk-dot.g { background: var(--accent); }
+.leaflet-container { font-family: var(--sans); }
+.leaflet-control-attribution { font-size: 9px; }
+/* Desaturate whatever basemap is available, so the marks carry the only colour. */
+.leaflet-tile-pane { filter: grayscale(1) contrast(.9) brightness(1.06); }
+
+/* ---- verdict ------------------------------------------------------------ */
+.verdict {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  background: var(--surface);
+}
+.cell { padding: 13px var(--gutter) 15px; border-left: 1px solid var(--rule-2); min-width: 0; }
+.cell:first-child { border-left: 0; }
+.cell .label { display: block; margin-bottom: 7px; }
+.cell .big {
+  font-family: var(--mono);
+  font-size: 24px;
+  font-weight: 500;
+  letter-spacing: -.03em;
+  line-height: 1;
+}
+.cell .big.miss { color: var(--accent); }
+.cell .sm { font-family: var(--mono); font-size: 11.5px; color: var(--ink-2); }
+.cell .sm a { color: var(--ink-2); }
+/* Drawn, not typed — an arrow glyph tofus in some mono fallbacks. */
+.ext::after {
+  content: "";
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  margin: 0 0 1px 6px;
+  border-top: 1px solid currentColor;
+  border-right: 1px solid currentColor;
+  transform: rotate(45deg);
+  vertical-align: middle;
+}
+.cell .unit { font-size: 12px; color: var(--ink-3); margin-left: 2px; letter-spacing: 0; }
+.scorebar { position: relative; height: 8px; background: var(--rule-2); margin-top: 10px; }
+.scorebar i { position: absolute; inset: 0 auto 0 0; background: var(--ink); }
+.scorebar b {
+  position: absolute;
+  top: -3px;
+  bottom: -3px;
+  width: 2px;
+  background: var(--accent);
+}
+.scorebar + .scalenote { margin-top: 5px; font-size: 10px; color: var(--ink-3); }
+.tag {
+  display: inline-block;
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border: 1px solid currentColor;
+  margin-left: 6px;
+  vertical-align: 2px;
+}
+.tag.ok { color: var(--good); }
+.tag.bad { color: var(--accent); }
+
+/* ---- reasoning ---------------------------------------------------------- */
+.reasoncols {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));
+  background: var(--surface);
+}
+.reasonsplit {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 360px);
+  background: var(--surface);
+}
+.reason { padding: 16px var(--gutter) 26px; border-left: 1px solid var(--rule-2); min-width: 0; }
+.reason:first-child { border-left: 0; }
+
+.others { padding: 16px var(--gutter) 26px; border-left: 1px solid var(--rule); min-width: 0; }
+.others > .label { display: block; padding-bottom: 9px; border-bottom: 1px solid var(--ink); }
+.otherrow {
+  display: grid;
+  grid-template-columns: 16px minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: baseline;
+  width: 100%;
+  text-align: left;
+  padding: 11px 0 12px;
+  border-bottom: 1px solid var(--rule-2);
+}
+.otherrow:hover { background: var(--paper); }
+.otherrow .rk { font-family: var(--mono); font-size: 10px; color: var(--ink-3); }
+.otherrow .nm { min-width: 0; }
+.otherrow .nm b { display: block; font-size: 13px; font-weight: 600; }
+.otherrow .snip {
+  display: block;
+  margin-top: 3px;
+  font-size: 11.5px;
+  line-height: 1.4;
+  color: var(--ink-3);
+}
+.otherrow .dk { font-family: var(--mono); font-size: 12px; white-space: nowrap; }
+.otherrow.cur .rk, .otherrow.cur .dk { color: var(--accent); }
+.otherrow.cur { box-shadow: inset 3px 0 0 var(--accent); padding-left: 9px; }
+.othernote { margin: 12px 0 0; font-size: 10.5px; color: var(--ink-3); }
+.prose code, .answerbox code {
+  font-family: var(--mono);
+  font-size: .92em;
+  background: var(--paper);
+  padding: 0 3px;
+}
+.reasonhead {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+  padding-bottom: 9px;
+  border-bottom: 1px solid var(--ink);
+}
+.reasonhead h3 { margin: 0; font-size: 13px; font-weight: 600; letter-spacing: -.01em; }
+.reasonhead .dist { font-family: var(--mono); font-size: 12px; color: var(--accent); }
+.meta-chips { display: flex; gap: 12px; flex-wrap: wrap; margin-left: auto; }
+.meta-chips span { font-family: var(--mono); font-size: 10px; color: var(--ink-3); }
+.prose {
+  max-width: 74ch;
+  font-size: 13.5px;
+  line-height: 1.62;
+  color: #26241f;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.prose mark { background: #ffe89a; color: inherit; padding: 0 1px; }
+.answerbox {
+  margin-top: 16px;
+  border-left: 3px solid var(--accent);
+  background: var(--paper);
+  padding: 10px 14px;
+  font-family: var(--mono);
+  font-size: 12px;
+  white-space: pre-wrap;
+  max-width: 74ch;
+}
+details.thinking { margin-top: 14px; max-width: 74ch; }
+details.thinking summary {
+  cursor: pointer;
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+details.thinking .prose { margin-top: 10px; color: var(--ink-2); font-size: 12.5px; }
+.empty { color: var(--ink-3); font-style: italic; font-size: 13px; }
+
+/* ---- charts ------------------------------------------------------------- */
+.chartwrap { width: 100%; }
+.chartwrap svg { display: block; max-width: 100%; overflow: visible; }
+.readout { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--rule); }
+.readout .label { display: block; margin-bottom: 4px; }
+.readout b { font-family: var(--mono); font-size: 14px; font-weight: 500; }
+.readout .foot-note { display: block; margin-top: 3px; font-size: 10.5px; color: var(--ink-3); }
+.axis { font-family: var(--mono); font-size: 9px; fill: var(--ink-3); }
+.gridline { stroke: var(--rule-2); stroke-width: 1; }
+.bar { fill: #3d3a35; }
+.bar.hot { fill: var(--accent); }
+.bar:hover { fill: var(--ink); }
+.dot { fill: #3d3a35; fill-opacity: .5; }
+.vec { stroke: var(--accent); stroke-width: 2; fill: none; }
+
+#tip {
+  position: fixed;
+  z-index: 9000;
+  pointer-events: none;
+  background: var(--ink);
+  color: #fff;
+  padding: 6px 9px;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  line-height: 1.4;
+  white-space: pre;
+  opacity: 0;
+  transition: opacity .1s;
+}
+
+/* ---- overview ----------------------------------------------------------- */
+.ovgrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(320px, 1fr);
+  background: var(--surface);
+  border-bottom: 1px solid var(--rule);
+}
+.ovmap { position: relative; min-height: 560px; border-right: 1px solid var(--rule); }
+#omap { position: absolute; inset: 0; }
+.ovside { display: grid; grid-template-rows: auto auto; }
+.panel { padding: 16px var(--gutter) 20px; border-bottom: 1px solid var(--rule-2); }
+.panel > .label { display: block; margin-bottom: 3px; }
+.panel .cap { font-size: 11.5px; color: var(--ink-3); margin: 0 0 14px; max-width: 46ch; }
+
+table.data { width: 100%; border-collapse: collapse; }
+table.data th, table.data td {
+  padding: 8px 10px;
+  text-align: right;
+  border-bottom: 1px solid var(--rule-2);
+  white-space: nowrap;
+}
+table.data th:first-child, table.data td:first-child { text-align: left; padding-left: var(--gutter); }
+table.data td:last-child, table.data th:last-child { padding-right: var(--gutter); }
+table.data th {
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: .11em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  border-bottom: 1px solid var(--ink);
+  cursor: pointer;
+  user-select: none;
+}
+table.data th:hover { color: var(--ink); }
+table.data td { font-family: var(--mono); font-size: 12px; color: var(--ink-2); }
+table.data td:first-child {
+  font-family: var(--sans); font-size: 13px; font-weight: 500; color: var(--ink);
+}
+table.data tbody tr:hover { background: var(--paper); }
+table.data tr.sel td { background: var(--paper); }
+table.data tr.sel td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
+/* Column leader: weight, not hue — red stays reserved for the guess mark. */
+table.data td.best { color: var(--ink); font-weight: 600; }
+.tablenote { padding: 10px var(--gutter) 0; font-size: 10.5px; color: var(--ink-3); }
+
+/* ---- lightbox ----------------------------------------------------------- */
+.lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 9500;
+  background: rgba(12,12,10,.96);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 34px;
+  cursor: zoom-out;
+}
+.lightbox[data-open="1"] { display: flex; }
+.lightbox img { max-width: 100%; max-height: 100%; object-fit: contain; }
+.lightbox .cap {
+  position: absolute;
+  left: 34px;
+  bottom: 14px;
+  color: #fff;
+  font-family: var(--mono);
+  font-size: 11px;
+}
+
+/* ---- footer ------------------------------------------------------------- */
+.foot {
+  padding: 20px var(--gutter) 40px;
+  border-top: 1px solid var(--rule);
+  display: flex;
+  gap: 26px;
+  flex-wrap: wrap;
+  font-size: 10.5px;
+  color: var(--ink-3);
+}
+.foot kbd {
+  font-family: var(--mono);
+  font-size: 10px;
+  border: 1px solid var(--rule);
+  padding: 1px 4px;
+  background: var(--surface);
+  color: var(--ink-2);
+}
+
+@media (max-width: 1080px) {
+  .frames, .ovgrid, .reasonsplit { grid-template-columns: minmax(0, 1fr); }
+  .others { border-left: 0; border-top: 1px solid var(--rule); }
+  .mappanel, .ovmap { border-left: 0; border-right: 0; border-top: 1px solid var(--rule); }
+  #map { height: 340px; }
+}
+@media (max-width: 820px) {
+  .app { grid-template-columns: minmax(0, 1fr); }
+  .rail { position: static; border-right: 0; border-bottom: 1px solid var(--rule); }
+  .loclist { max-height: 300px; }
+}
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="brand">GEO<b>BENCH</b><span>GUESS VIEWER</span></div>
+  <div class="masthead-meta" id="mhmeta"></div>
+  <nav class="views" role="tablist">
+    <button role="tab" data-view="browse" aria-selected="true">Browse</button>
+    <button role="tab" data-view="overview" aria-selected="false">Overview</button>
+  </nav>
+</header>
+
+<div class="modelbar" id="modelbar" role="tablist"></div>
+<div class="statband" id="statband"></div>
+
+<main class="app">
+  <aside class="rail">
+    <div class="railhead">
+      <div class="search">
+        <input id="q" type="search" placeholder="Search reasoning, country…" autocomplete="off">
+        <span class="k">/</span>
+      </div>
+      <div class="chips" id="filters"></div>
+      <div class="chips" id="sorts" style="margin-top:7px"></div>
+    </div>
+    <div class="railcount">
+      <span class="label" id="listcount"></span>
+      <span class="label" id="listnote"></span>
+    </div>
+    <div class="loclist" id="loclist"></div>
+    <div class="railfoot">
+      <span class="label">Error distribution — <span id="histmodel"></span></span>
+      <div class="chartwrap" id="hist"></div>
+    </div>
+  </aside>
+
+  <section class="stage" id="stage"></section>
+</main>
+
+<div class="lightbox" id="lightbox"><img alt=""><div class="cap"></div></div>
+<div id="tip"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const DATA = /*__DATA__*/;
+
+/* ============================ derive ==================================== */
+
+const LOCS = DATA.locations;
+const MODELS = DATA.models;
+const LOC_INDEX = new Map(LOCS.map((l, i) => [l.id, i]));
+
+// geobench.py takes the upper-middle element rather than averaging the pair;
+// mirror it so this view never contradicts the run's own summary.json.
+const median = a => a.length ? [...a].sort((x, y) => x - y)[a.length >> 1] : null;
+const mean = a => a.length ? a.reduce((x, y) => x + y, 0) / a.length : null;
+const KM_PER_DEG = 111.32;
+
+for (const m of MODELS) {
+  const rows = LOCS.map(l => m.guesses[l.id]).filter(Boolean);
+  const scored = rows.filter(g => !g.refused && g.km != null);
+  const km = scored.map(g => g.km);
+  m.stats = {
+    n: rows.length,
+    scored: scored.length,
+    refused: rows.filter(g => g.refused).length,
+    countryOk: rows.filter(g => g.countryOk).length,
+    medKm: median(km),
+    meanKm: mean(km),
+    medScore: median(scored.map(g => g.score)),
+    // Refusals score 0 but are excluded from the distance/score averages,
+    // exactly as geobench.py reports them.
+    meanScore: mean(scored.map(g => g.score)),
+    // North / east offset in km, to expose systematic pull toward a region.
+    biasN: mean(scored.map(g => (g.lat - LOCS[LOC_INDEX.get(g.id)].lat) * KM_PER_DEG)),
+    biasE: mean(scored.map(g => (g.lng - LOCS[LOC_INDEX.get(g.id)].lng) * KM_PER_DEG *
+      Math.cos(LOCS[LOC_INDEX.get(g.id)].lat * Math.PI / 180))),
+    outTok: mean(rows.filter(g => g.outTok).map(g => g.outTok)),
+    latency: mean(rows.filter(g => g.latency).map(g => g.latency)),
+    wins: 0,
+  };
+}
+
+// Per-location ranking across models: who was closest here.
+const RANKS = new Map();
+for (const loc of LOCS) {
+  const entries = MODELS
+    .map((m, i) => ({ i, g: m.guesses[loc.id] }))
+    .filter(e => e.g && !e.g.refused && e.g.km != null)
+    .sort((a, b) => a.g.km - b.g.km);
+  RANKS.set(loc.id, entries.map(e => e.i));
+  if (entries.length) MODELS[entries[0].i].stats.wins++;
+}
+
+/* ============================ state ===================================== */
+
+const FILTERS = [
+  { id: 'all',     name: 'All',      fn: () => true },
+  { id: 'miss',    name: 'Wrong ctry', fn: g => g && !g.countryOk },
+  { id: 'refused', name: 'Refused',  fn: g => g && g.refused },
+  { id: 'close',   name: '< 100 km', fn: g => g && g.km != null && g.km < 100 },
+  { id: 'far',     name: '> 300 km', fn: g => g && g.km != null && g.km >= 300 },
+];
+const SORTS = [
+  { id: 'id',    name: 'Order',  fn: (a, b) => a.i - b.i },
+  { id: 'worst', name: 'Worst',  fn: (a, b) => (b.g?.km ?? 1e9) - (a.g?.km ?? 1e9) },
+  { id: 'best',  name: 'Best',   fn: (a, b) => (a.g?.km ?? 1e9) - (b.g?.km ?? 1e9) },
+  { id: 'spread', name: 'Disagreement', fn: (a, b) => b.spread - a.spread },
+];
+
+const S = {
+  model: 0,
+  loc: 0,
+  view: 'browse',
+  compare: false,
+  filter: 'all',
+  sort: 'id',
+  query: '',
+  bin: null,
+  tableSort: { key: 'medKm', dir: 1 },
+  connectors: true,
+};
+
+const $ = sel => document.querySelector(sel);
+const el = (tag, attrs = {}, ...kids) => {
+  const n = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (v === null || v === undefined || v === false) continue;
+    if (k === 'class') n.className = v;
+    else if (k === 'html') n.innerHTML = v;
+    else if (k === 'text') n.textContent = v;
+    else if (k.startsWith('on')) n.addEventListener(k.slice(2), v);
+    else n.setAttribute(k, v === true ? 'true' : v);
+  }
+  for (const kid of kids.flat()) {
+    if (kid == null || kid === false) continue;
+    n.appendChild(typeof kid === 'string' ? document.createTextNode(kid) : kid);
+  }
+  return n;
+};
+
+const NS = 'http://www.w3.org/2000/svg';
+const svgEl = (tag, attrs = {}) => {
+  const n = document.createElementNS(NS, tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (v === null || v === undefined || v === false) continue;
+    if (k === 'text') n.textContent = v; else n.setAttribute(k, v);
+  }
+  return n;
+};
+
+const fmt = (v, d = 0) => v == null ? '—'
+  : v.toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d });
+const km = v => v == null ? '—' : v >= 100 ? fmt(v) : fmt(v, 1);
+const coord = (lat, lng) => (lat == null || lng == null) ? '—'
+  : `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c =>
+  ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+const curModel = () => MODELS[S.model];
+const curLoc = () => LOCS[S.loc];
+const guessOf = (mi, loc) => MODELS[mi].guesses[loc.id];
+
+/* the models shown for the current location: one, or all in compare mode */
+const activeModels = () => S.compare ? MODELS.map((_, i) => i) : [S.model];
+
+/* ============================ list ====================================== */
+
+function spreadOf(loc) {
+  const ds = MODELS.map(m => m.guesses[loc.id]).filter(g => g && g.km != null);
+  if (ds.length < 2) return 0;
+  const ks = ds.map(g => g.km);
+  return Math.max(...ks) - Math.min(...ks);
+}
+
+function visibleRows() {
+  const f = FILTERS.find(x => x.id === S.filter).fn;
+  const q = S.query.trim().toLowerCase();
+  const searched = activeModels();  // browse: this model; compare: all of them
+  const rows = LOCS.map((l, i) => ({
+    i, loc: l, g: guessOf(S.model, l), spread: spreadOf(l),
+  })).filter(r => {
+    if (!f(r.g)) return false;
+    if (S.bin && !(r.g && r.g.km != null && r.g.km >= S.bin[0] && r.g.km < S.bin[1])) return false;
+    if (!q) return true;
+    const hay = searched
+      .flatMap(mi => { const g = MODELS[mi].guesses[r.loc.id];
+        return g ? [g.text, g.answer, g.country, g.thinking] : []; })
+      .concat(r.loc.id)
+      .filter(Boolean).join(' ').toLowerCase();
+    return hay.includes(q);
+  });
+  return rows.sort(SORTS.find(x => x.id === S.sort).fn);
+}
+
+function renderRail() {
+  $('#filters').replaceChildren(...FILTERS.map(f => el('button', {
+    class: 'chip', 'aria-pressed': S.filter === f.id, text: f.name,
+    onclick: () => { S.filter = f.id; S.bin = null; render(); },
+  })));
+  $('#sorts').replaceChildren(
+    el('span', { class: 'label', style: 'align-self:center;margin-right:2px' }, 'Sort'),
+    ...SORTS.map(s => el('button', {
+      class: 'chip', 'aria-pressed': S.sort === s.id, text: s.name,
+      onclick: () => { S.sort = s.id; render(); },
+    })));
+
+  const rows = visibleRows();
+  $('#listcount').textContent = `${rows.length} / ${LOCS.length} locations`;
+  $('#listnote').textContent = S.bin ? `${S.bin[0]}–${S.bin[1]} km` : '';
+
+  const list = $('#loclist');
+  // The bar tracks error distance, not score: at these scales a score bar is a
+  // sliver on every row and says nothing.
+  const worst = Math.max(1, ...LOCS.map(l => guessOf(S.model, l)?.km ?? 0));
+  list.replaceChildren(...rows.map(r => {
+    const g = r.g;
+    const pct = g && g.km != null ? Math.max(1.5, 100 * g.km / worst) : 100;
+    return el('button', {
+      class: 'locrow' + (g && !g.countryOk ? ' miss' : ''),
+      'aria-current': r.i === S.loc,
+      title: g ? `${km(g.km)} km · ${fmt(g.score)} pts · ${g.country ?? '—'}` : '',
+      onclick: () => { S.loc = r.i; render(); scrollStage(); },
+    },
+      el('span', { class: 'id', text: r.loc.id }),
+      el('span', { class: 'track' }, el('span', { class: 'fill', style: `width:${pct}%` })),
+      el('span', { class: 'km', text: g?.refused ? 'REF' : km(g?.km) }));
+  }));
+
+  const active = list.querySelector('[aria-current="true"]');
+  if (active) active.scrollIntoView({ block: 'nearest' });
+
+  $('#histmodel').textContent = curModel().name;
+  drawHistogram($('#hist'));
+}
+
+function scrollStage() {
+  if (window.innerWidth <= 820) $('#stage').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+/* ============================ header ==================================== */
+
+function renderHeader() {
+  const m = curModel();
+  $('#mhmeta').replaceChildren(
+    metaItem('Dataset', DATA.dataset.toUpperCase()),
+    metaItem('Locations', String(LOCS.length)),
+    metaItem('Models', String(MODELS.length)),
+    metaItem('Prompt', m.promptMode),
+    metaItem('Scale', DATA.scale ? `${fmt(DATA.scale)} km` : '—'));
+
+  $('#modelbar').replaceChildren(
+    ...MODELS.map((mm, i) => el('button', {
+      class: 'mtab', role: 'tab', 'aria-selected': i === S.model,
+      onclick: () => { S.model = i; S.compare = false; S.bin = null; render(); },
+    },
+      el('strong', {}, el('span', { class: 'idx', text: String(i + 1).padStart(2, '0') }), mm.name),
+      el('em', { text: `${km(mm.stats.medKm)} km med · ${fmt(mm.stats.medScore)} pts` }))),
+    el('span', { class: 'spacer' }),
+    el('button', {
+      class: 'toggle', 'aria-pressed': S.compare,
+      onclick: () => { S.compare = !S.compare; render(); },
+      text: 'Compare all',
+    }));
+
+  const st = curModel().stats;
+  $('#statband').replaceChildren(
+    stat('Median error', km(st.medKm), 'km'),
+    stat('Mean error', km(st.meanKm), 'km'),
+    stat('Median score', fmt(st.medScore), '/5k'),
+    stat('Mean score', fmt(st.meanScore), '/5k'),
+    stat('Country right', fmt(100 * st.countryOk / st.n, 0), '%'),
+    stat('Closest of ' + MODELS.length, fmt(st.wins), '×'),
+    st.outTok ? stat('Output tokens', fmt(st.outTok), 'avg') : null,
+    st.latency ? stat('Latency', fmt(st.latency, 1), 's') : null);
+}
+
+const metaItem = (k, v) => el('div', {}, el('span', { class: 'label', text: k }), el('b', { text: v }));
+const stat = (k, v, unit) => v == null ? null : el('div', { class: 'stat' },
+  el('span', { class: 'label', text: k }),
+  el('b', {}, v, unit ? el('i', { text: unit }) : null));
+
+/* ============================ stage ===================================== */
+
+function render() {
+  document.querySelectorAll('.views button').forEach(b =>
+    b.setAttribute('aria-selected', b.dataset.view === S.view));
+  renderHeader();
+  renderRail();
+  if (S.view === 'browse') renderBrowse(); else renderOverview();
+  const hash = `#m=${S.model}&l=${curLoc().id}${S.compare ? '&c=1' : ''}` +
+    (S.view === 'overview' ? '&v=o' : '');
+  // Chrome refuses replaceState on file:// URLs; the deep link is optional.
+  try { history.replaceState(null, '', hash); }
+  catch { if (location.hash !== hash) location.hash = hash; }
+}
+
+function renderBrowse() {
+  const loc = curLoc();
+  const mine = activeModels();
+  const g = guessOf(S.model, loc);
+  const rank = RANKS.get(loc.id).indexOf(S.model);
+
+  const stage = $('#stage');
+  stage.replaceChildren(
+    el('div', { class: 'slab' },
+      el('div', { class: 'slabhead' },
+        el('h2', {}, `Location ${loc.id}`,
+          el('span', { class: 'tag ' + (g?.countryOk ? 'ok' : 'bad'),
+            text: g?.refused ? 'refused' : (g?.countryOk ? 'country ok' : 'country miss') })),
+        el('span', { class: 'sub', text:
+          `${loc.country ?? ''} · ${loc.date ?? 'undated'} · heading ${loc.heading != null ? loc.heading.toFixed(0) + '°' : '—'}` })),
+      el('div', { class: 'frames' },
+        photoFigure(loc),
+        el('div', { class: 'mappanel' },
+          el('div', { id: 'map' }),
+          legendBox())),
+      verdictStrip(loc, g, rank)),
+    S.compare
+      ? el('div', { class: 'reasoncols' }, ...mine.map(i => reasonPanel(i, loc)))
+      : el('div', { class: 'reasonsplit' }, reasonPanel(S.model, loc), othersPanel(loc)),
+    footer());
+
+  mountMap(loc, mine);
+}
+
+function photoFigure(loc) {
+  const caption = [
+    coord(loc.lat, loc.lng),
+    loc.date ?? '',
+    loc.pano ? 'pano ' + loc.pano.slice(0, 10) + '…' : '',
+  ].filter(Boolean);
+  const fig = el('figure', { class: 'photo' },
+    el('span', { class: 'idtag', text: DATA.dataset.toUpperCase() + ' / ' + loc.id }),
+    el('img', {
+      src: loc.src, alt: `Street View at location ${loc.id}`, loading: 'eager',
+      onclick: () => openLightbox(loc),
+    }),
+    el('figcaption', {}, ...caption.map(c => el('span', { text: c }))));
+  return fig;
+}
+
+const legendBox = () => el('div', { class: 'maplegend' },
+  el('div', {}, el('span', { class: 'swatch truth' }), 'Actual'),
+  el('div', {}, el('span', { class: 'swatch guess' }),
+    S.compare ? curModel().name : 'Guess'),
+  S.compare ? el('div', {}, el('span', { class: 'swatch other' }), 'Other models') : null);
+
+function verdictStrip(loc, g, rank) {
+  const st = curModel().stats;
+  const pct = Math.min(100, (g?.score || 0) / 50);
+  const medPct = Math.min(100, (st.medScore || 0) / 50);
+  const gmaps = `https://www.google.com/maps/@?api=1&map_action=pano&pano=${loc.pano}` +
+    (loc.heading != null ? `&heading=${loc.heading.toFixed(1)}` : '');
+
+  return el('div', { class: 'verdict' },
+    el('div', { class: 'cell' },
+      el('span', { class: 'label', text: 'Actual' }),
+      el('div', { class: 'sm', text: coord(loc.lat, loc.lng) }),
+      el('div', { class: 'sm', style: 'margin-top:6px' },
+        loc.pano ? el('a', { class: 'ext', href: gmaps, target: '_blank', rel: 'noopener',
+          text: 'open street view' }) : '—')),
+    el('div', { class: 'cell' },
+      el('span', { class: 'label', text: 'Guess — ' + curModel().name }),
+      el('div', { class: 'sm', text: g?.refused ? 'no coordinates parsed' : coord(g?.lat, g?.lng) }),
+      el('div', { class: 'sm', style: 'margin-top:6px' },
+        g?.lat != null
+          ? el('a', { class: 'ext', href: `https://www.google.com/maps/search/?api=1&query=${g.lat},${g.lng}`,
+              target: '_blank', rel: 'noopener', text: g.country ?? 'guess' })
+          : (g?.error ?? '—'))),
+    el('div', { class: 'cell' },
+      el('span', { class: 'label', text: 'Error' }),
+      el('div', { class: 'big' + (g && g.km != null && g.km > (st.medKm ?? 0) ? ' miss' : '') },
+        g?.refused ? '—' : km(g?.km), el('span', { class: 'unit', text: 'km' })),
+      el('div', { class: 'scalenote', style: 'margin-top:8px',
+        text: `model median ${km(st.medKm)} km` })),
+    el('div', { class: 'cell' },
+      el('span', { class: 'label', text: 'Score' }),
+      el('div', { class: 'big' }, fmt(g?.score ?? 0),
+        el('span', { class: 'unit', text: '/5000' })),
+      el('div', { class: 'scorebar' },
+        el('i', { style: `width:${pct}%` }),
+        el('b', { style: `left:${medPct}%`, title: 'model median' })),
+      el('div', { class: 'scalenote', text: 'red tick = model median' })),
+    el('div', { class: 'cell' },
+      el('span', { class: 'label', text: 'Rank here' }),
+      el('div', { class: 'big', text: rank < 0 ? '—' : `${rank + 1}/${RANKS.get(loc.id).length}` }),
+      el('div', { class: 'scalenote', style: 'margin-top:8px', text:
+        RANKS.get(loc.id).length ? 'closest: ' + MODELS[RANKS.get(loc.id)[0]].name : '' })));
+}
+
+function reasonPanel(mi, loc) {
+  const m = MODELS[mi], g = m.guesses[loc.id];
+  const q = S.query.trim();
+  const chips = [];
+  if (g?.outTok) chips.push(`${fmt(g.outTok)} out tok`);
+  if (g?.reasonTok) chips.push(`${fmt(g.reasonTok)} reasoning`);
+  if (g?.latency) chips.push(`${fmt(g.latency, 1)} s`);
+
+  return el('div', { class: 'reason' },
+    el('div', { class: 'reasonhead' },
+      el('h3', { text: m.name }),
+      el('span', { class: 'dist', text: g?.refused ? 'refused' : km(g?.km) + ' km' }),
+      chips.length ? el('span', { class: 'meta-chips' },
+        ...chips.map(c => el('span', { text: c }))) : null),
+    !g ? el('p', { class: 'empty', text: 'No result for this location.' })
+      : el('div', {},
+        g.text
+          ? el('div', { class: 'prose', html: highlight(g.text, q) })
+          : el('p', { class: 'empty', text: g.error ?? 'No text returned.' }),
+        g.answer ? el('div', { class: 'answerbox', html: highlight(g.answer, q) }) : null,
+        g.thinking ? el('details', { class: 'thinking' },
+          el('summary', { text: 'Thinking' }),
+          el('div', { class: 'prose', html: highlight(g.thinking, q) })) : null));
+}
+
+/* Escape, highlight the query, then honour the little markdown models emit.
+   Bold and inline code only — anything more and this becomes a parser. */
+function highlight(text, q) {
+  let out = esc(text);
+  if (q && q.length >= 2) {
+    const rx = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+    out = out.replace(rx, s => `<mark>${s}</mark>`);
+  }
+  return out
+    .replace(/\*\*([^*\n]+)\*\*/g, '<b>$1</b>')
+    .replace(/`([^`\n]+)`/g, '<code>$1</code>')
+    .replace(/^#{1,6}\s+(.+)$/gm, '<b>$1</b>');
+}
+
+/* What every other model said here — the empty half of a single-model page is
+   the natural home for the comparison you would otherwise switch tabs for. */
+function othersPanel(loc) {
+  const order = RANKS.get(loc.id);
+  const rest = MODELS.map((_, i) => i)
+    .sort((a, b) => (order.indexOf(a) + 1 || 99) - (order.indexOf(b) + 1 || 99));
+
+  return el('aside', { class: 'others' },
+    el('span', { class: 'label', text: 'Every model here' }),
+    el('div', { class: 'otherlist' }, ...rest.map(mi => {
+      const m = MODELS[mi], g = m.guesses[loc.id];
+      const place = g && !g.refused ? (lastSentence(g.text) || g.country || '') : (g?.error ?? '');
+      const at = order.indexOf(mi);
+      return el('button', {
+        class: 'otherrow' + (mi === S.model ? ' cur' : ''),
+        onclick: () => { S.model = mi; render(); },
+      },
+        el('span', { class: 'rk', text: at < 0 ? '–' : String(at + 1) }),
+        el('span', { class: 'nm' },
+          el('b', { text: m.name }),
+          el('span', { class: 'snip', text: place })),
+        el('span', { class: 'dk', text: g?.refused ? 'REF' : km(g?.km) + ' km' }));
+    })),
+    el('p', { class: 'othernote', text: 'Ranked by distance. Click to switch model.' }));
+}
+
+function lastSentence(text) {
+  if (!text) return '';
+  const parts = text.trim().replace(/\s+/g, ' ').split(/(?<=[.!?])\s+/);
+  const s = parts[parts.length - 1] || '';
+  return s.length > 150 ? s.slice(0, 147).trimEnd() + '…' : s;
+}
+
+const footer = () => el('div', { class: 'foot' },
+  el('span', {}, el('kbd', {}, '←'), ' ', el('kbd', {}, '→'), ' location'),
+  el('span', {}, el('kbd', {}, '['), ' ', el('kbd', {}, ']'), ' model'),
+  el('span', {}, el('kbd', {}, 'c'), ' compare'),
+  el('span', {}, el('kbd', {}, 'o'), ' overview'),
+  el('span', {}, el('kbd', {}, 'f'), ' full image'),
+  el('span', {}, el('kbd', {}, '/'), ' search'),
+  el('span', { text: `Scores use the GeoGuessr curve at scale ${DATA.scale ?? '—'} km — comparable within this dataset only.` }));
+
+/* ============================ maps ====================================== */
+
+let MAP = null, OMAP = null;
+// OSM's standard tiles need no key; .leaflet-tile-pane greys them down to match.
+const TILES = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
+const ATTR = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
+
+function baseMap(id) {
+  const m = L.map(id, { zoomControl: true, attributionControl: true, scrollWheelZoom: true });
+  L.tileLayer(TILES, { attribution: ATTR, maxZoom: 18 }).addTo(m);
+  m.zoomControl.setPosition('topright');
+  return m;
+}
+
+const icon = (cls, text) => L.divIcon({
+  className: 'mk',
+  html: `<span class="${cls}">${text ?? ''}</span>`,
+  iconSize: cls === 'mk-other' ? [15, 15] : [13, 13],
+  iconAnchor: cls === 'mk-other' ? [7, 7] : [6, 6],
+});
+
+function mountMap(loc, mine) {
+  if (typeof L === 'undefined') { fallbackMap($('#map'), loc, mine); return; }
+  if (MAP) { MAP.remove(); MAP = null; }
+  MAP = baseMap('map');
+  const pts = [[loc.lat, loc.lng]];
+
+  L.marker([loc.lat, loc.lng], { icon: icon('mk-truth'), zIndexOffset: 500 })
+    .addTo(MAP).bindTooltip(`Actual · ${coord(loc.lat, loc.lng)}`);
+
+  mine.forEach(mi => {
+    const g = MODELS[mi].guesses[loc.id];
+    if (!g || g.lat == null) return;
+    const isCur = mi === S.model;
+    L.polyline([[loc.lat, loc.lng], [g.lat, g.lng]], {
+      color: isCur ? '#d81e05' : '#8d8983',
+      weight: isCur ? 2 : 1,
+      opacity: isCur ? .85 : .5,
+    }).addTo(MAP);
+    L.marker([g.lat, g.lng], {
+      icon: isCur ? icon('mk-guess') : icon('mk-other', String(mi + 1)),
+      zIndexOffset: isCur ? 400 : 100,
+    }).addTo(MAP).bindTooltip(`${MODELS[mi].name} · ${km(g.km)} km`);
+    pts.push([g.lat, g.lng]);
+  });
+
+  if (pts.length > 1) MAP.fitBounds(L.latLngBounds(pts).pad(0.28));
+  else MAP.setView([loc.lat, loc.lng], 7);
+  setTimeout(() => MAP && MAP.invalidateSize(), 30);
+}
+
+/* Plain SVG plot so the tool still works with no network for tiles. */
+function fallbackMap(node, loc, mine) {
+  const b = DATA.bounds, W = node.clientWidth || 380, H = 340;
+  const x = lng => (lng - b.min.lng) / (b.max.lng - b.min.lng) * (W - 24) + 12;
+  const y = lat => H - 12 - (lat - b.min.lat) / (b.max.lat - b.min.lat) * (H - 24);
+  const parts = LOCS.map(l => `<circle cx="${x(l.lng)}" cy="${y(l.lat)}" r="1.6" fill="#c9c6c0"/>`);
+  mine.forEach(mi => {
+    const g = MODELS[mi].guesses[loc.id];
+    if (!g || g.lat == null) return;
+    parts.push(`<line x1="${x(loc.lng)}" y1="${y(loc.lat)}" x2="${x(g.lng)}" y2="${y(g.lat)}"
+      stroke="${mi === S.model ? '#d81e05' : '#8d8983'}" stroke-width="${mi === S.model ? 2 : 1}"/>`);
+    parts.push(`<circle cx="${x(g.lng)}" cy="${y(g.lat)}" r="5" fill="${mi === S.model ? '#d81e05' : '#fff'}" stroke="#111" stroke-width="1.5"/>`);
+  });
+  parts.push(`<rect x="${x(loc.lng) - 6}" y="${y(loc.lat) - 6}" width="12" height="12" fill="#111"/>`);
+  node.innerHTML = `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:${H}px;background:#fff">${parts.join('')}</svg>`;
+}
+
+/* ============================ overview ================================== */
+
+function renderOverview() {
+  const stage = $('#stage');
+  stage.replaceChildren(
+    el('div', { class: 'slab' },
+      el('div', { class: 'slabhead' },
+        el('h2', { text: `All ${LOCS.length} guesses — ${S.compare ? 'every model' : curModel().name}` }),
+        el('span', { class: 'sub' },
+          el('label', { style: 'cursor:pointer' },
+            el('input', {
+              type: 'checkbox', checked: S.connectors, style: 'vertical-align:-1px;margin-right:6px',
+              onchange: e => { S.connectors = e.target.checked; renderOverview(); },
+            }), 'error lines'))),
+      el('div', { class: 'ovgrid' },
+        el('div', { class: 'ovmap' }, el('div', { id: 'omap' })),
+        el('div', { class: 'ovside' },
+          el('div', { class: 'panel' },
+            el('span', { class: 'label', text: 'Directional bias' }),
+            el('p', { class: 'cap', text:
+              `Each dot is one guess offset from its true location, in km. The arrow is the mean — where ${curModel().name} systematically pulls.` }),
+            el('div', { class: 'chartwrap', id: 'bias' })),
+          el('div', { class: 'panel', style: 'border-bottom:0' },
+            el('span', { class: 'label', text: 'Error distribution' }),
+            el('p', { class: 'cap', text:
+              'Great-circle distance from guess to truth, 25 km bins. The red bar is the '
+              + 'bin holding the selected location; click any bar to filter the list.' }),
+            el('div', { class: 'chartwrap', id: 'hist2' }))))),
+    el('div', { class: 'slab' },
+      el('div', { class: 'slabhead' },
+        el('h2', { text: 'Model comparison' }),
+        el('span', { class: 'sub', text: 'click a header to sort · click a row to select' })),
+      modelTable(),
+      el('p', { class: 'tablenote', text:
+        'Wins = locations where that model made the closest guess. Country % excludes nothing; refusals count as wrong.' })),
+    footer());
+
+  mountOverviewMap();
+  drawBias($('#bias'));
+  drawHistogram($('#hist2'), true);
+}
+
+const COLS = [
+  { key: 'name',      name: 'Model',     get: m => m.name, kind: 'text' },
+  { key: 'provider',  name: 'Provider',  get: m => m.provider, kind: 'text' },
+  { key: 'medKm',     name: 'Median km', get: m => m.stats.medKm, low: true },
+  { key: 'meanKm',    name: 'Mean km',   get: m => m.stats.meanKm, low: true },
+  { key: 'medScore',  name: 'Median pts', get: m => m.stats.medScore },
+  { key: 'meanScore', name: 'Mean pts',  get: m => m.stats.meanScore },
+  { key: 'countryOk', name: 'Country %', get: m => 100 * m.stats.countryOk / m.stats.n },
+  { key: 'refused',   name: 'Refused',   get: m => m.stats.refused, low: true },
+  { key: 'wins',      name: 'Wins',      get: m => m.stats.wins },
+  { key: 'outTok',    name: 'Out tok',   get: m => m.stats.outTok },
+  { key: 'latency',   name: 'Sec',       get: m => m.stats.latency, low: true },
+];
+
+function modelTable() {
+  const cols = COLS.filter(c => c.kind === 'text' || MODELS.some(m => c.get(m) != null));
+  const best = {};
+  for (const c of cols) {
+    if (c.kind === 'text') continue;
+    const vals = MODELS.map(c.get).filter(v => v != null);
+    if (vals.length) best[c.key] = c.low ? Math.min(...vals) : Math.max(...vals);
+  }
+  const sorted = [...MODELS.keys()].sort((a, b) => {
+    const c = cols.find(x => x.key === S.tableSort.key) ?? cols[0];
+    const va = c.get(MODELS[a]), vb = c.get(MODELS[b]);
+    if (c.kind === 'text') return S.tableSort.dir * String(va).localeCompare(String(vb));
+    return S.tableSort.dir * ((va ?? Infinity) - (vb ?? Infinity));
+  });
+
+  return el('table', { class: 'data' },
+    el('thead', {}, el('tr', {}, ...cols.map(c => el('th', {
+      text: c.name + (S.tableSort.key === c.key ? (S.tableSort.dir > 0 ? ' ↑' : ' ↓') : ''),
+      onclick: () => {
+        S.tableSort = S.tableSort.key === c.key
+          ? { key: c.key, dir: -S.tableSort.dir }
+          : { key: c.key, dir: c.low || c.kind === 'text' ? 1 : -1 };
+        renderOverview();
+      },
+    })))),
+    el('tbody', {}, ...sorted.map(i => {
+      const m = MODELS[i];
+      return el('tr', {
+        class: i === S.model ? 'sel' : '',
+        onclick: () => { S.model = i; S.compare = false; render(); },
+      }, ...cols.map(c => {
+        const v = c.get(m);
+        const isBest = c.kind !== 'text' && v != null && v === best[c.key];
+        const d = c.key === 'latency' ? 1 : c.key === 'countryOk' ? 0 : 0;
+        return el('td', { class: isBest ? 'best' : '',
+          text: c.kind === 'text' ? String(v) : fmt(v, d) });
+      }));
+    })));
+}
+
+function mountOverviewMap() {
+  const node = $('#omap');
+  if (typeof L === 'undefined') { node.textContent = 'Map tiles unavailable offline.'; return; }
+  if (OMAP) { OMAP.remove(); OMAP = null; }
+  OMAP = baseMap('omap');
+  const pts = [];
+
+  for (const loc of LOCS) {
+    pts.push([loc.lat, loc.lng]);
+    L.marker([loc.lat, loc.lng], { icon: icon('mk-dot'), zIndexOffset: 300 })
+      .addTo(OMAP)
+      .bindTooltip(`Location ${loc.id}`)
+      .on('click', () => { S.loc = LOC_INDEX.get(loc.id); S.view = 'browse'; render(); });
+
+    for (const mi of activeModels()) {
+      const g = MODELS[mi].guesses[loc.id];
+      if (!g || g.lat == null) continue;
+      if (S.connectors) {
+        L.polyline([[loc.lat, loc.lng], [g.lat, g.lng]],
+          { color: '#111', weight: 1, opacity: .18 }).addTo(OMAP);
+      }
+      L.marker([g.lat, g.lng], { icon: icon('mk-dot g') })
+        .addTo(OMAP)
+        .bindTooltip(`${MODELS[mi].name} → ${loc.id} · ${km(g.km)} km`)
+        .on('click', () => { S.loc = LOC_INDEX.get(loc.id); S.model = mi; S.view = 'browse'; render(); });
+      pts.push([g.lat, g.lng]);
+    }
+  }
+  OMAP.fitBounds(L.latLngBounds(pts).pad(0.05));
+  setTimeout(() => OMAP && OMAP.invalidateSize(), 30);
+}
+
+/* ============================ charts ==================================== */
+
+const tip = $('#tip');
+function showTip(e, text) {
+  tip.textContent = text;
+  tip.style.opacity = 1;
+  const pad = 14;
+  tip.style.left = Math.min(e.clientX + pad, innerWidth - tip.offsetWidth - 8) + 'px';
+  tip.style.top = Math.max(8, e.clientY - tip.offsetHeight - pad) + 'px';
+}
+const hideTip = () => { tip.style.opacity = 0; };
+
+const BIN = 25, BINS = 16; // 0–400 km, then an overflow bucket
+
+function drawHistogram(node, big = false) {
+  if (!node) return;
+  const gs = LOCS.map(l => guessOf(S.model, l)).filter(g => g && g.km != null && !g.refused);
+  const counts = new Array(BINS + 1).fill(0);
+  for (const g of gs) counts[Math.min(BINS, Math.floor(g.km / BIN))]++;
+  const max = Math.max(1, ...counts);
+
+  // Draw at the container's own pixel width so labels never scale with it.
+  const W = Math.max(220, Math.round(node.clientWidth) || 260);
+  const H = big ? 190 : 92, padL = 2, padB = 16;
+  const bw = (W - padL) / counts.length;
+  const cur = guessOf(S.model, curLoc());
+  const curBin = cur && cur.km != null ? Math.min(BINS, Math.floor(cur.km / BIN)) : -1;
+
+  const svg = svgEl('svg', { viewBox: `0 0 ${W} ${H}`, style: 'width:100%;height:auto' });
+  const mk = svgEl;
+
+  // one recessive baseline; the bars carry the reading
+  svg.appendChild(mk('line', { x1: 0, x2: W, y1: H - padB, y2: H - padB, class: 'gridline' }));
+
+  counts.forEach((c, i) => {
+    const h = (c / max) * (H - padB - 6);
+    const r = mk('rect', {
+      x: padL + i * bw + 1, y: H - padB - h, width: Math.max(1, bw - 2), height: h,
+      class: 'bar' + (i === curBin ? ' hot' : ''),
+    });
+    const lo = i * BIN, hi = i === BINS ? Infinity : (i + 1) * BIN;
+    const range = i === BINS ? `${lo}+ km` : `${lo}–${hi} km`;
+    r.style.cursor = 'pointer';
+    r.addEventListener('mousemove', e => showTip(e, `${range}\n${c} location${c === 1 ? '' : 's'}`));
+    r.addEventListener('mouseleave', hideTip);
+    r.addEventListener('click', () => {
+      const same = S.bin && S.bin[0] === lo;
+      S.bin = same ? null : [lo, i === BINS ? 1e9 : hi];
+      S.filter = 'all';
+      hideTip();
+      render();
+    });
+    svg.appendChild(r);
+  });
+
+  [0, 100, 200, 300, 400].forEach(v => svg.appendChild(mk('text', {
+    x: padL + (v / BIN) * bw, y: H - 4, class: 'axis',
+    'text-anchor': v === 400 ? 'end' : v === 0 ? 'start' : 'middle',
+    text: v === 400 ? '400+' : String(v),
+  })));
+  svg.appendChild(mk('text', {
+    x: W, y: 9, class: 'axis', 'text-anchor': 'end', text: `max ${max} in a bin`,
+  }));
+
+  node.replaceChildren(svg);
+}
+
+function drawBias(node) {
+  if (!node) return;
+  const pts = [];
+  for (const loc of LOCS) {
+    const g = guessOf(S.model, loc);
+    if (!g || g.lat == null || g.refused) continue;
+    pts.push({
+      id: loc.id,
+      e: (g.lng - loc.lng) * KM_PER_DEG * Math.cos(loc.lat * Math.PI / 180),
+      n: (g.lat - loc.lat) * KM_PER_DEG,
+    });
+  }
+  const st = curModel().stats;
+  const lim = Math.max(60, ...pts.map(p => Math.max(Math.abs(p.e), Math.abs(p.n))));
+  const step = lim > 400 ? 200 : lim > 200 ? 100 : 50;
+
+  const S_ = Math.max(220, Math.min(420, Math.round(node.clientWidth) || 250));
+  const c = S_ / 2, k = (c - 18) / lim;
+  const mk = svgEl;
+  const svg = svgEl('svg', { viewBox: `0 0 ${S_} ${S_}`, width: S_, height: S_ });
+
+  for (let r = step; r <= lim; r += step) {
+    svg.appendChild(mk('circle', { cx: c, cy: c, r: r * k, class: 'gridline', fill: 'none' }));
+  }
+  svg.appendChild(mk('line', { x1: 8, x2: S_ - 8, y1: c, y2: c, class: 'gridline' }));
+  svg.appendChild(mk('line', { x1: c, x2: c, y1: 8, y2: S_ - 8, class: 'gridline' }));
+  [['N', c, 11, 'middle'], ['S', c, S_ - 3, 'middle'], ['E', S_ - 3, c - 5, 'end'], ['W', 3, c - 5, 'start']]
+    .forEach(([t, x, y, anchor]) => svg.appendChild(
+      mk('text', { x, y, class: 'axis', 'text-anchor': anchor, text: t })));
+  svg.appendChild(mk('text', { x: c + step * k + 3, y: c - 4, class: 'axis', text: step + ' km' }));
+
+  for (const p of pts) {
+    const dot = mk('circle', { cx: c + p.e * k, cy: c - p.n * k, r: 3.5, class: 'dot' });
+    dot.addEventListener('mousemove', e => showTip(e,
+      `Location ${p.id}\n${p.n >= 0 ? 'N' : 'S'} ${Math.abs(p.n).toFixed(0)} km  ` +
+      `${p.e >= 0 ? 'E' : 'W'} ${Math.abs(p.e).toFixed(0)} km`));
+    dot.addEventListener('mouseleave', hideTip);
+    svg.appendChild(dot);
+  }
+
+  if (st.biasE != null && st.biasN != null) {
+    svg.appendChild(mk('line', {
+      x1: c, y1: c, x2: c + st.biasE * k, y2: c - st.biasN * k, class: 'vec',
+    }));
+    svg.appendChild(mk('circle', {
+      cx: c + st.biasE * k, cy: c - st.biasN * k, r: 4.5, fill: '#d81e05',
+      stroke: '#fff', 'stroke-width': 2,
+    }));
+  }
+
+  // The mean reads as a caption, not a label pinned to a crowded centre.
+  const readout = el('div', { class: 'readout' },
+    el('span', { class: 'label', text: 'Mean offset' }),
+    el('b', { text: st.biasN == null ? '—'
+      : `${Math.abs(st.biasN).toFixed(0)} km ${st.biasN >= 0 ? 'north' : 'south'}, ` +
+        `${Math.abs(st.biasE).toFixed(0)} km ${st.biasE >= 0 ? 'east' : 'west'}` }),
+    el('span', { class: 'foot-note', text: `${pts.length} scored guesses` }));
+  node.replaceChildren(svg, readout);
+}
+
+/* ============================ lightbox / keys =========================== */
+
+function openLightbox(loc) {
+  const box = $('#lightbox');
+  box.querySelector('img').src = loc.src;
+  box.querySelector('.cap').textContent =
+    `${DATA.dataset.toUpperCase()} / ${loc.id} · ${coord(loc.lat, loc.lng)} · ${loc.date ?? ''}`;
+  box.dataset.open = '1';
+}
+$('#lightbox').addEventListener('click', () => { $('#lightbox').dataset.open = '0'; });
+
+function step(delta) {
+  const rows = visibleRows();
+  const at = rows.findIndex(r => r.i === S.loc);
+  const next = rows[(at < 0 ? 0 : at + delta + rows.length) % rows.length];
+  if (next) { S.loc = next.i; render(); }
+}
+
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT' && e.key !== 'Escape') return;
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  const k = e.key;
+  if (k === 'Escape') { $('#lightbox').dataset.open = '0'; $('#q').blur(); return; }
+  if (k === '/') { e.preventDefault(); $('#q').focus(); return; }
+  if (k === 'ArrowRight' || k === 'j') { e.preventDefault(); step(1); }
+  else if (k === 'ArrowLeft' || k === 'k') { e.preventDefault(); step(-1); }
+  else if (k === ']') { S.model = (S.model + 1) % MODELS.length; S.compare = false; render(); }
+  else if (k === '[') { S.model = (S.model - 1 + MODELS.length) % MODELS.length; S.compare = false; render(); }
+  else if (k === 'c') { S.compare = !S.compare; render(); }
+  else if (k === 'o') { S.view = S.view === 'overview' ? 'browse' : 'overview'; render(); }
+  else if (k === 'f' && S.view === 'browse') openLightbox(curLoc());
+});
+
+$('#q').addEventListener('input', e => {
+  S.query = e.target.value;
+  renderRail();
+  if (S.view === 'browse') renderBrowse();
+});
+
+document.querySelectorAll('.views button').forEach(b =>
+  b.addEventListener('click', () => { S.view = b.dataset.view; render(); }));
+
+/* deep link: #m=0&l=12&c=1&v=o */
+(function fromHash() {
+  const h = new URLSearchParams(location.hash.slice(1));
+  const m = Number(h.get('m'));
+  if (Number.isInteger(m) && MODELS[m]) S.model = m;
+  if (h.has('l') && LOC_INDEX.has(h.get('l'))) S.loc = LOC_INDEX.get(h.get('l'));
+  if (h.get('c') === '1') S.compare = true;
+  if (h.get('v') === 'o') S.view = 'overview';
+})();
+
+render();
+addEventListener('resize', () => {
+  if (MAP) MAP.invalidateSize();
+  if (OMAP) OMAP.invalidateSize();
+});
+</script>
+</body>
+</html>

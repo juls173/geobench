@@ -27,6 +27,9 @@ internal/*
 # Visualizations output
 visualizations/*.csv
 visualizations/*/*.html
+visualizations/viewer/out/
+# ...but the guess viewer's source template is not generated output
+!visualizations/viewer/template.html
 
 scripts/private/*
 
