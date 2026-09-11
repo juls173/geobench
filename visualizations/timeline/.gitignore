@@ -1,0 +1,8 @@
+# Downloaded sources (Epoch's benchmark_data.zip, the geobench.org bundle)
+.cache/
+
+# Built by build_timeline.py -- the template and the merged data are the source
+timeline.html
+
+# The root .gitignore drops every visualizations/*/*.html; this one is source.
+!timeline.template.html
