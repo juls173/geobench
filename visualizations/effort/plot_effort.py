@@ -101,6 +101,7 @@ class Run:
         self.refusal = float(summary.get("refusal_rate", 0.0))
         self.prompt_mode = (summary.get("prompt_mode") or "standard").strip()
         self._per_loc: dict[int, tuple[float, float, float]] | None = None
+        self._cot: list[float] | None = None
 
     @property
     def per_location(self) -> dict[int, tuple[float, float, float]]:
@@ -126,6 +127,35 @@ class Run:
                 pass
             self._per_loc = out
         return self._per_loc
+
+
+    @property
+    def cot(self) -> list[float]:
+        """Chain-of-thought tokens per location, from the archived responses.
+
+        Only the raw JSON records this -- summary.json has no token counts. The
+        field is output_tokens_details.reasoning_tokens on OpenAI and
+        .thinking_tokens on Anthropic; chat-completions shaped replies put the
+        same thing under completion_tokens_details.
+        """
+        if self._cot is None:
+            vals: list[float] = []
+            for jf in sorted((self.folder / "json").glob("*.json")):
+                try:
+                    d = json.loads(jf.read_text())
+                except (OSError, ValueError):
+                    continue
+                usage = d.get("usage") or {}
+                det = usage.get("output_tokens_details") or usage.get("completion_tokens_details") or {}
+                v = det.get("reasoning_tokens", det.get("thinking_tokens"))
+                if isinstance(v, (int, float)):
+                    vals.append(float(v))
+            self._cot = vals
+        return self._cot
+
+    @property
+    def cot_mean(self) -> float | None:
+        return mean_sem(self.cot)[0] if self.cot else None
 
 
 def load_runs(responses: Path) -> list[Run]:
@@ -253,9 +283,20 @@ def km_fmt(v, _pos=None):
     return f"{v:,.0f}"
 
 
+def tok_fmt(v: float) -> str:
+    """Token counts, compact enough to sit on a marker."""
+    if v is None:
+        return "—"
+    if v >= 10000:
+        return f"{v/1000:.0f}k"
+    if v >= 1000:
+        return f"{v/1000:.1f}k"
+    return f"{v:.0f}"
+
+
 def plot_model(model: str, by_dataset: dict[str, dict[str, Run]], out: Path) -> Path:
     """Three metrics against effort, one line per dataset."""
-    fig, axes = plt.subplots(1, 3, figsize=(12.2, 4.1))
+    fig, axes = plt.subplots(1, 4, figsize=(15.6, 4.1))
     any_run = next(iter(next(iter(by_dataset.values())).values()))
     colour = colour_for(any_run)
 
@@ -264,6 +305,8 @@ def plot_model(model: str, by_dataset: dict[str, dict[str, Run]], out: Path) -> 
         ("Country accuracy", "% of locations", lambda r: r.country * 100,
          lambda r: country_sem(r) * 100),
         ("Median miss", "km (lower is better)", lambda r: r.median_km, None),
+        ("Reasoning tokens", "avg per location", lambda r: r.cot_mean,
+         lambda r: mean_sem(r.cot)[1] if r.cot else None),
     ]
 
     used_efforts: list[str] = []
@@ -273,7 +316,7 @@ def plot_model(model: str, by_dataset: dict[str, dict[str, Run]], out: Path) -> 
     xpos = {e: i for i, e in enumerate(order)}
 
     for ax, (title, ylab, getter, semf) in zip(axes, panels):
-        for ds, effs in sorted(by_dataset.items()):
+        for di, (ds, effs) in enumerate(sorted(by_dataset.items())):
             marker, ls, label = DATASET_STYLE.get(ds, ("^", ":", ds))
             rungs = sorted(effs.items(), key=lambda kv: EFFORT_RANK[kv[0]])
             xs = [xpos[e] for e, _ in rungs]
@@ -299,6 +342,16 @@ def plot_model(model: str, by_dataset: dict[str, dict[str, Run]], out: Path) -> 
                 ax.plot(xs, ys, color=colour, marker=marker, linestyle=ls, linewidth=1.8,
                         markersize=6, markeredgecolor="white", markeredgewidth=1, label=label)
 
+            if title == "Reasoning tokens":
+                # the two image sets sit almost on top of each other at low effort,
+                # so push the second one's labels below the line
+                dy, va = (10, "bottom") if di == 0 else (-11, "top")
+                for xi, yi in zip(xs, ys):
+                    ax.annotate(tok_fmt(yi), (xi, yi), textcoords="offset points",
+                                xytext=(0, dy), ha="center", va=va,
+                                fontsize=8.5, color=INK_2)
+                continue
+
             # mark the winning rung
             best = max(range(len(ys)), key=lambda i: ys[i]) if title != "Median miss" \
                 else min(range(len(ys)), key=lambda i: ys[i])
@@ -315,13 +368,14 @@ def plot_model(model: str, by_dataset: dict[str, dict[str, Run]], out: Path) -> 
         for side in ("top", "right"):
             ax.spines[side].set_visible(False)
         ax.grid(axis="x", visible=False)
-        if title == "Median miss":
+        if title in ("Median miss", "Reasoning tokens"):
             ax.yaxis.set_major_formatter(FuncFormatter(km_fmt))
 
     axes[0].legend(loc="best", fontsize=8.5)
     top = header(fig, f"{model} — does more reasoning effort help?",
                  "Score and country: ±1 standard error across locations. "
-                 "Median miss: 95% bootstrap interval.\n"
+                 "Median miss: 95% bootstrap interval. Reasoning tokens are the "
+                 "model's own chain of thought,\naveraged per location. "
                  "Scores compare only within one image set.")
     fig.tight_layout(rect=(0, 0, 1, 1 - top))
 
@@ -350,6 +404,11 @@ def plot_overview(lads: dict[tuple[str, str], dict[str, Run]], out: Path) -> Pat
         best = max(xs, key=lambda i: ys[i])
         ax.plot([xs[best]], [ys[best]], marker="o", markersize=10, mfc="none",
                 mec=colour, mew=1.6)
+        # how much thinking each rung actually bought
+        for xi, (_, r) in zip(xs, rungs):
+            ax.annotate(tok_fmt(r.cot_mean), (xi, 0), xycoords=("data", "axes fraction"),
+                        textcoords="offset points", xytext=(0, 4), ha="center",
+                        fontsize=7.5, color=INK_3)
         ax.set_title(f"{model}\n{DATASET_STYLE.get(ds, ('', '', ds))[2]}",
                      fontsize=9.5, loc="left", pad=6)
         ax.set_xticks(xs)
@@ -365,7 +424,8 @@ def plot_overview(lads: dict[tuple[str, str], dict[str, Run]], out: Path) -> Pat
         ax.set_visible(False)
 
     top = header(fig, "Average score against reasoning effort",
-                 "Ring marks the best rung; error bars ±1 SE across locations.\n"
+                 "Ring marks the best rung; error bars ±1 SE across locations. "
+                 "Grey figures are average chain-of-thought tokens per location.\n"
                  "The rungs sit well inside each other's error bars — "
                  "see summary_effort_delta.png.", title_size=14)
     fig.tight_layout(rect=(0, 0, 1, 1 - top))
@@ -389,6 +449,7 @@ def plot_summary(lads: dict[tuple[str, str], dict[str, Run]], out: Path) -> Path
             "lo": rungs[0][0], "hi": rungs[-1][0],
             "delta": delta, "ci": 1.96 * sem, "n": n,
             "colour": colour_for(hi),
+            "tok_lo": lo.cot_mean, "tok_hi": hi.cot_mean,
         })
     entries.sort(key=lambda e: e["delta"])
 
@@ -402,7 +463,9 @@ def plot_summary(lads: dict[tuple[str, str], dict[str, Run]], out: Path) -> Path
     span = max(abs(e["delta"]) + e["ci"] for e in entries) * 1.30
     ax.set_xlim(-span, span)
     ax.set_yticks(list(ys))
-    ax.set_yticklabels([f'{e["label"]}   ({e["lo"]}→{e["hi"]})' for e in entries], fontsize=9)
+    ax.set_yticklabels(
+        [f'{e["label"]}   ({e["lo"]}→{e["hi"]}, {tok_fmt(e["tok_lo"])}→{tok_fmt(e["tok_hi"])} tok)'
+         for e in entries], fontsize=9)
     ax.set_xlabel("Change in average score, highest effort minus lowest  "
                   "(paired per location, 95% CI)", fontsize=9.5)
     for side in ("top", "right", "left"):
@@ -419,8 +482,9 @@ def plot_summary(lads: dict[tuple[str, str], dict[str, Run]], out: Path) -> Path
 
     top = header(fig, "Does the highest reasoning effort beat the lowest?",
                  "Whiskers are 95% confidence intervals; any that crosses zero means the\n"
-                 "difference is not distinguishable from noise. Measured location by\n"
-                 "location, so panorama difficulty cancels out.")
+                 "difference is not distinguishable from noise. Measured location by location,\n"
+                 "so panorama difficulty cancels out. Token figures are the average chain of\n"
+                 "thought at each end of the ladder.")
     fig.tight_layout(rect=(0, 0, 1, 1 - top))
     path = out / "summary_effort_delta.png"
     fig.savefig(path, bbox_inches="tight")
@@ -466,7 +530,7 @@ def main() -> None:
             d, sem, n = paired_delta(hi, lo, 0)
             sig = "significant" if abs(d) > 1.96 * sem else "within noise"
             print(f"  {model:17s} {ds:13s} "
-                  + " ".join(f"{e}={r.avg_score:7.1f}" for e, r in rungs)
+                  + " ".join(f"{e}={r.avg_score:7.1f}/{tok_fmt(r.cot_mean):>5s}" for e, r in rungs)
                   + f"   {rungs[0][0]}→{rungs[-1][0]}: {d:+7.1f} ±{1.96*sem:5.1f} ({sig}, n={n})")
         written.append(plot_model(model, by_ds, args.out))
 

@@ -30,6 +30,19 @@ Error bars are ±1 standard error across locations for score and country accurac
 2,000-sample bootstrap interval for the median miss, which has no closed-form standard
 error. Fixed seed, so the plots are reproducible.
 
+## Chain-of-thought tokens
+
+Every plot also reports how much thinking each rung actually bought — the average
+chain-of-thought tokens per location, read from the archived raw responses in
+`<run>/json/`, which is the only place the count is kept (`summary.json` has no token
+figures). The field is `usage.output_tokens_details.reasoning_tokens` on OpenAI and
+`.thinking_tokens` on Anthropic.
+
+This is what makes the result bite. The effort setting is doing exactly what it says —
+GPT-6 Astra goes from 106 tokens at Low to 3,992 at XHigh, a 38× increase — and on ACW
+that buys it **−186 points**. GPT-5.5 spends 14× more thinking between Low and High for
+−77 (within noise). The ladder is real; the payoff mostly isn't.
+
 ## What the plots say
 
 **Mostly, more reasoning effort does not help.** Of the 14 model×dataset ladders, 11 show
