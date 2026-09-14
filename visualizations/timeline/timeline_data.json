@@ -1,0 +1,2315 @@
+{
+ "generated": "2026-09-14",
+ "sources": {
+  "scores": "geobench.org leaderboard + local benchmark runs",
+  "dates": "Epoch AI benchmark_data.zip (model_metadata.csv)",
+  "dates_url": "https://epoch.ai/data/benchmark_data.zip"
+ },
+ "datasets": {
+  "acw": {
+   "id": "acw",
+   "test_id": "acw-02-25-25",
+   "label": "ACW \u2014 A Community World",
+   "locations": 100,
+   "models": [
+    {
+     "model": "GPT-4o mini",
+     "org": "OpenAI",
+     "date": "2024-07-18",
+     "date_source": "Epoch AI",
+     "epoch_group": "GPT-4o mini",
+     "variants": [
+      {
+       "variant": "default",
+       "score": 3400.8,
+       "country": 0.64,
+       "median_score": 3875.5,
+       "median_distance_km": 472.1,
+       "refusal": 0.0,
+       "n": 100,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "geobench.org"
+      }
+     ]
+    },
+    {
+     "model": "Pixtral 12B",
+     "org": "Mistral",
+     "date": "2024-09-17",
+     "date_source": "Epoch AI",
+     "epoch_group": "Pixtral 12B",
+     "variants": [
+      {
+       "variant": "default",
+       "score": 2130.7,
+       "country": 0.37,
+       "median_score": 2227,
+       "median_distance_km": 1500.1,
+       "refusal": 0.0,
+       "n": 100,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "geobench.org"
+      }
+     ]
+    },
+    {
+     "model": "Qwen2.5-VL-72B",
+     "org": "Alibaba",
+     "date": "2024-09-19",
+     "date_source": "Epoch AI",
+     "epoch_group": "Qwen2.5-72B",
+     "variants": [
+      {
+       "variant": "default",
+       "score": 3448.3,
+       "country": 0.62,
+       "median_score": 4008,
+       "median_distance_km": 442.0,
+       "refusal": 0.0,
+       "n": 100,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "geobench.org"
+      }
+     ]
+    },
+    {
+     "model": "Gemini 1.5 Flash",
+     "org": "Google",
+     "date": "2024-09-24",
+     "date_source": "Epoch AI",
+     "epoch_group": "Gemini 1.5 Flash (Sep 2024)",
+     "variants": [
+      {
+       "variant": "default",
+       "score": 3933.9,
+       "country": 0.76,
+       "median_score": 4376,
+       "median_distance_km": 248.2,
+       "refusal": 0.0,
+       "n": 100,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "geobench.org"
+      }
+     ]
+    },
+    {
+     "model": "Llama 3.2 90B Vision",
+     "org": "Meta",
+     "date": "2024-09-24",
+     "date_source": "Epoch AI",
+     "epoch_group": "Llama 3.2 90B",
+     "variants": [
+      {
+       "variant": "default",
+       "score": 2797.6,
+       "country": 0.52,
+       "median_score": 3529,
+       "median_distance_km": 645.9,
+       "refusal": 0.07,
+       "n": 100,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "geobench.org"
+      }
+     ]
+    },
+    {
+     "model": "Claude 3.5 Haiku",
+     "org": "Anthropic",
+     "date": "2024-10-22",
+     "date_source": "Epoch AI",
+     "epoch_group": "Claude 3.5 Haiku",
+     "variants": [
+      {
+       "variant": "default",
+       "score": 2506.6,
+       "country": 0.34,
+       "median_score": 2861.5,
+       "median_distance_km": 1034.9,
+       "refusal": 0.0,
+       "n": 100,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "geobench.org"
+      }
+     ]
+    },
+    {
+     "model": "Claude 3.5 Sonnet",
+     "org": "Anthropic",
+     "date": "2024-10-22",
+     "date_source": "Epoch AI",
+     "epoch_group": "Claude 3.5 Sonnet (October 2024)",
+     "variants": [
+      {
+       "variant": "default",
+       "score": 3327.2,
+       "country": 0.62,
+       "median_score": 4167,
+       "median_distance_km": 338.1,
+       "refusal": 0.0,
+       "n": 100,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "geobench.org"
+      }
+     ]
+    },
+    {
+     "model": "GPT-4o",
+     "org": "OpenAI",
+     "date": "2024-11-20",
+     "date_source": "Epoch AI",
+     "epoch_group": "GPT-4o (Nov 2024)",
+     "variants": [
+      {
+       "variant": "default",
+       "score": 3696.0,
+       "country": 0.71,
+       "median_score": 4300,
+       "median_distance_km": 279.5,
+       "refusal": 0.0,
+       "n": 100,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "geobench.org"
+      }
+     ]
+    },
+    {
+     "model": "o1",
+     "org": "OpenAI",
+     "date": "2024-12-17",
+     "date_source": "Epoch AI",
+     "epoch_group": "o1",
+     "variants": [
+      {
+       "variant": "default",
+       "score": 3924.6,
+       "country": 0.8,
+       "median_score": 4252,
+       "median_distance_km": 337.1,
+       "refusal": 0.0,
+       "n": 20,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "geobench.org"
+      }
+     ]
+    },
+    {
+     "model": "Gemini 2.0 Flash Thinking",
+     "org": "Google",
+     "date": "2025-01-21",
+     "date_source": "Epoch AI",
+     "epoch_group": "Gemini 2.0 Flash Thinking (Jan 2025)",
+     "variants": [
+      {
+       "variant": "default",
+       "score": 3766.6,
+       "country": 0.7,
+       "median_score": 4381.5,
+       "median_distance_km": 244.8,
+       "refusal": 0.0,
+       "n": 50,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "geobench.org"
+      }
+     ]
+    },
+    {
+     "model": "Gemini 2.0 Flash",
+     "org": "Google",
+     "date": "2025-02-05",
+     "date_source": "Epoch AI",
+     "epoch_group": "Gemini 2.0 Flash (Feb 2025)",
+     "variants": [
+      {
+       "variant": "default",
+       "score": 3897.4,
+       "country": 0.77,
+       "median_score": 4328,
+       "median_distance_km": 267.6,
+       "refusal": 0.0,
+       "n": 100,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "geobench.org"
+      }
+     ]
+    },
+    {
+     "model": "Gemini 2.0 Pro",
+     "org": "Google",
+     "date": "2025-02-05",
+     "date_source": "Epoch AI",
+     "epoch_group": "Gemini 2.0 Pro",
+     "variants": [
+      {
+       "variant": "default",
+       "score": 3883.7,
+       "country": 0.7755,
+       "median_score": 4503,
+       "median_distance_km": 194.0,
+       "refusal": 0.0,
+       "n": 49,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "geobench.org"
+      }
+     ]
+    },
+    {
+     "model": "Claude 3.7 Sonnet",
+     "org": "Anthropic",
+     "date": "2025-02-24",
+     "date_source": "Epoch AI",
+     "epoch_group": "Claude 3.7 Sonnet",
+     "variants": [
+      {
+       "variant": "Thinking",
+       "score": 3844.1,
+       "country": 0.65,
+       "median_score": 4386,
+       "median_distance_km": 243.0,
+       "refusal": 0.0,
+       "n": 20,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "geobench.org"
+      },
+      {
+       "variant": "default",
+       "score": 3790.5,
+       "country": 0.68,
+       "median_score": 4253,
+       "median_distance_km": 299.9,
+       "refusal": 0.0,
+       "n": 50,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "geobench.org"
+      }
+     ]
+    },
+    {
+     "model": "Gemma 3 27B",
+     "org": "Google",
+     "date": "2025-03-12",
+     "date_source": "Epoch AI",
+     "epoch_group": "Gemma 3 27B",
+     "variants": [
+      {
+       "variant": "default",
+       "score": 3086.8,
+       "country": 0.52,
+       "median_score": 3822,
+       "median_distance_km": 501.7,
+       "refusal": 0.0,
+       "n": 100,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "geobench.org"
+      }
+     ]
+    },
+    {
+     "model": "Gemini 2.5 Pro (Mar 2025)",
+     "org": "Google",
+     "date": "2025-03-25",
+     "date_source": "Epoch AI",
+     "epoch_group": "Gemini 2.5 Pro (Mar 2025)",
+     "variants": [
+      {
+       "variant": "Search",
+       "score": 4092.5,
+       "country": 0.84,
+       "median_score": 4574.5,
+       "median_distance_km": 164.9,
+       "refusal": 0.0,
+       "n": 100,
+       "tools": true,
+       "prompt_tuned": false,
+       "source": "geobench.org"
+      },
+      {
+       "variant": "default",
+       "score": 3999.4,
+       "country": 0.78,
+       "median_score": 4558.5,
+       "median_distance_km": 171.3,
+       "refusal": 0.0,
+       "n": 100,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "geobench.org"
+      }
+     ]
+    },
+    {
+     "model": "Llama 4 Maverick",
+     "org": "Meta",
+     "date": "2025-04-05",
+     "date_source": "Epoch AI",
+     "epoch_group": "Llama 4 Maverick",
+     "variants": [
+      {
+       "variant": "default",
+       "score": 3068.8,
+       "country": 0.52,
+       "median_score": 3650,
+       "median_distance_km": 583.4,
+       "refusal": 0.0,
+       "n": 100,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "geobench.org"
+      }
+     ]
+    },
+    {
+     "model": "GPT-4.1",
+     "org": "OpenAI",
+     "date": "2025-04-14",
+     "date_source": "Epoch AI",
+     "epoch_group": "GPT-4.1",
+     "variants": [
+      {
+       "variant": "default",
+       "score": 3790.5,
+       "country": 0.72,
+       "median_score": 4373,
+       "median_distance_km": 272.5,
+       "refusal": 0.0,
+       "n": 100,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "geobench.org"
+      }
+     ]
+    },
+    {
+     "model": "o3",
+     "org": "OpenAI",
+     "date": "2025-04-16",
+     "date_source": "Epoch AI",
+     "epoch_group": "o3",
+     "variants": [
+      {
+       "variant": "High",
+       "score": 3929.6,
+       "country": 0.6,
+       "median_score": 4433,
+       "median_distance_km": 235.2,
+       "refusal": 0.18,
+       "n": 100,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "geobench.org"
+      },
+      {
+       "variant": "Medium",
+       "score": 3857.6,
+       "country": 0.74,
+       "median_score": 4388.5,
+       "median_distance_km": 241.9,
+       "refusal": 0.0,
+       "n": 100,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "geobench.org"
+      }
+     ]
+    },
+    {
+     "model": "o4-mini",
+     "org": "OpenAI",
+     "date": "2025-04-16",
+     "date_source": "Epoch AI",
+     "epoch_group": "o4-mini",
+     "variants": [
+      {
+       "variant": "High",
+       "score": 3717.0,
+       "country": 0.64,
+       "median_score": 4312,
+       "median_distance_km": 274.4,
+       "refusal": 0.09,
+       "n": 100,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "geobench.org"
+      },
+      {
+       "variant": "Medium",
+       "score": 3651.3,
+       "country": 0.64,
+       "median_score": 4303,
+       "median_distance_km": 293.7,
+       "refusal": 0.1,
+       "n": 100,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "geobench.org"
+      }
+     ]
+    },
+    {
+     "model": "Gemini 2.5 Flash (Apr 2025)",
+     "org": "Google",
+     "date": "2025-04-17",
+     "date_source": "Epoch AI",
+     "epoch_group": "Gemini 2.5 Flash (Apr 2025)",
+     "variants": [
+      {
+       "variant": "default",
+       "score": 3854.2,
+       "country": 0.73,
+       "median_score": 4291.5,
+       "median_distance_km": 283.3,
+       "refusal": 0.0,
+       "n": 100,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "geobench.org"
+      }
+     ]
+    },
+    {
+     "model": "Gemini 2.5 Pro (May 2025)",
+     "org": "Google",
+     "date": "2025-05-06",
+     "date_source": "Epoch AI",
+     "epoch_group": "Gemini 2.5 Pro (May 2025)",
+     "variants": [
+      {
+       "variant": "default",
+       "score": 4085.4,
+       "country": 0.86,
+       "median_score": 4581,
+       "median_distance_km": 162.2,
+       "refusal": 0.0,
+       "n": 100,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "geobench.org"
+      },
+      {
+       "variant": "Search",
+       "score": 3983.3,
+       "country": 0.81,
+       "median_score": 4466,
+       "median_distance_km": 209.3,
+       "refusal": 0.0,
+       "n": 100,
+       "tools": true,
+       "prompt_tuned": false,
+       "source": "geobench.org"
+      }
+     ]
+    },
+    {
+     "model": "Gemini 2.5 Flash (May 2025)",
+     "org": "Google",
+     "date": "2025-05-20",
+     "date_source": "Epoch AI",
+     "epoch_group": "Gemini 2.5 Flash (May 2025)",
+     "variants": [
+      {
+       "variant": "default",
+       "score": 3786.3,
+       "country": 0.76,
+       "median_score": 4344,
+       "median_distance_km": 260.6,
+       "refusal": 0.0,
+       "n": 100,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "geobench.org"
+      }
+     ]
+    },
+    {
+     "model": "Claude Opus 4",
+     "org": "Anthropic",
+     "date": "2025-05-22",
+     "date_source": "Epoch AI",
+     "epoch_group": "Claude Opus 4",
+     "variants": [
+      {
+       "variant": "Thinking",
+       "score": 2915.5,
+       "country": 0.49,
+       "median_score": 3626,
+       "median_distance_km": 595.7,
+       "refusal": 0.0,
+       "n": 100,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "geobench.org"
+      }
+     ]
+    },
+    {
+     "model": "Claude Sonnet 4",
+     "org": "Anthropic",
+     "date": "2025-05-22",
+     "date_source": "Epoch AI",
+     "epoch_group": "Claude Sonnet 4",
+     "variants": [
+      {
+       "variant": "default",
+       "score": 2468.2,
+       "country": 0.37,
+       "median_score": 2791,
+       "median_distance_km": 1090.7,
+       "refusal": 0.0,
+       "n": 100,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "geobench.org"
+      },
+      {
+       "variant": "Thinking",
+       "score": 2369.3,
+       "country": 0.32,
+       "median_score": 2726,
+       "median_distance_km": 1192.2,
+       "refusal": 0.0,
+       "n": 100,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "geobench.org"
+      }
+     ]
+    },
+    {
+     "model": "Gemini 2.5 Pro (Jun 2025)",
+     "org": "Google",
+     "date": "2025-06-05",
+     "date_source": "Epoch AI",
+     "epoch_group": "Gemini 2.5 Pro (Jun 2025)",
+     "variants": [
+      {
+       "variant": "default",
+       "score": 4019.3,
+       "country": 0.81,
+       "median_score": 4472,
+       "median_distance_km": 206.8,
+       "refusal": 0.0,
+       "n": 100,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "geobench.org"
+      }
+     ]
+    },
+    {
+     "model": "Grok 4",
+     "org": "xAI",
+     "date": "2025-07-09",
+     "date_source": "Epoch AI",
+     "epoch_group": "Grok 4",
+     "variants": [
+      {
+       "variant": "default",
+       "score": 2718.5,
+       "country": 0.45,
+       "median_score": 3543,
+       "median_distance_km": 638.6,
+       "refusal": 0.0,
+       "n": 100,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "geobench.org"
+      }
+     ]
+    },
+    {
+     "model": "GPT-5",
+     "org": "OpenAI",
+     "date": "2025-08-07",
+     "date_source": "Epoch AI",
+     "epoch_group": "GPT-5",
+     "variants": [
+      {
+       "variant": "Medium",
+       "score": 3937.0,
+       "country": 0.81,
+       "median_score": 4458,
+       "median_distance_km": 216.7,
+       "refusal": 0.0,
+       "n": 100,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "geobench.org"
+      },
+      {
+       "variant": "Medium",
+       "score": 3881.0,
+       "country": 0.76,
+       "median_score": 4424,
+       "median_distance_km": 242.2,
+       "refusal": 0.0,
+       "n": 100,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "local run"
+      },
+      {
+       "variant": "High",
+       "score": 3809.6,
+       "country": 0.74,
+       "median_score": 4368,
+       "median_distance_km": 266.6,
+       "refusal": 0.0,
+       "n": 100,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "local run"
+      },
+      {
+       "variant": "Low",
+       "score": 3797.9,
+       "country": 0.76,
+       "median_score": 4345,
+       "median_distance_km": 266.5,
+       "refusal": 0.0,
+       "n": 100,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "local run"
+      }
+     ]
+    },
+    {
+     "model": "Qwen3-VL-235B",
+     "org": "Alibaba",
+     "date": "2025-09-23",
+     "date_source": "Qwen release announcement",
+     "epoch_group": "",
+     "variants": [
+      {
+       "variant": "default",
+       "score": 3272.5,
+       "country": 0.59,
+       "median_score": 4015,
+       "median_distance_km": 441.8,
+       "refusal": 0.0,
+       "n": 100,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "geobench.org"
+      }
+     ]
+    },
+    {
+     "model": "Claude Sonnet 4.5",
+     "org": "Anthropic",
+     "date": "2025-09-29",
+     "date_source": "Epoch AI",
+     "epoch_group": "Claude Sonnet 4.5",
+     "variants": [
+      {
+       "variant": "Thinking",
+       "score": 3252.4,
+       "country": 0.6,
+       "median_score": 3886,
+       "median_distance_km": 487.6,
+       "refusal": 0.0,
+       "n": 100,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "geobench.org"
+      }
+     ]
+    },
+    {
+     "model": "Gemini 3 Pro",
+     "org": "Google",
+     "date": "2025-11-18",
+     "date_source": "Epoch AI",
+     "epoch_group": "Gemini 3 Pro",
+     "variants": [
+      {
+       "variant": "default",
+       "score": 4144.6,
+       "country": 0.84,
+       "median_score": 4628,
+       "median_distance_km": 143.9,
+       "refusal": 0.0,
+       "n": 100,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "geobench.org"
+      }
+     ]
+    },
+    {
+     "model": "Claude Opus 4.5",
+     "org": "Anthropic",
+     "date": "2025-11-24",
+     "date_source": "Epoch AI",
+     "epoch_group": "Claude Opus 4.5",
+     "variants": [
+      {
+       "variant": "Thinking",
+       "score": 3877.3,
+       "country": 0.75,
+       "median_score": 4336,
+       "median_distance_km": 266.8,
+       "refusal": 0.0,
+       "n": 100,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "geobench.org"
+      }
+     ]
+    },
+    {
+     "model": "GLM-4.6V",
+     "org": "Z.ai",
+     "date": "2025-12-09",
+     "date_source": "Z.ai release announcement",
+     "epoch_group": "",
+     "variants": [
+      {
+       "variant": "default",
+       "score": 3729.8,
+       "country": 0.71,
+       "median_score": 4355,
+       "median_distance_km": 265.5,
+       "refusal": 0.0,
+       "n": 100,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "geobench.org"
+      }
+     ]
+    },
+    {
+     "model": "Gemini 3 Flash",
+     "org": "Google",
+     "date": "2025-12-17",
+     "date_source": "Epoch AI",
+     "epoch_group": "Gemini 3 Flash",
+     "variants": [
+      {
+       "variant": "default",
+       "score": 4332.8,
+       "country": 0.88,
+       "median_score": 4670.5,
+       "median_distance_km": 126.4,
+       "refusal": 0.0,
+       "n": 100,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "geobench.org"
+      }
+     ]
+    },
+    {
+     "model": "Claude Sonnet 4.6",
+     "org": "Anthropic",
+     "date": "2026-02-17",
+     "date_source": "Epoch AI",
+     "epoch_group": "Claude Sonnet 4.6",
+     "variants": [
+      {
+       "variant": "Thinking",
+       "score": 3761.7,
+       "country": 0.73,
+       "median_score": 4413,
+       "median_distance_km": 233.0,
+       "refusal": 0.0,
+       "n": 100,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "geobench.org"
+      }
+     ]
+    },
+    {
+     "model": "Gemini 3.1 Pro",
+     "org": "Google",
+     "date": "2026-02-19",
+     "date_source": "Epoch AI",
+     "epoch_group": "Gemini 3.1 Pro",
+     "variants": [
+      {
+       "variant": "default",
+       "score": 4172.2,
+       "country": 0.84,
+       "median_score": 4607,
+       "median_distance_km": 159.6,
+       "refusal": 0.0,
+       "n": 100,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "geobench.org"
+      }
+     ]
+    },
+    {
+     "model": "Gemini 3.1 Flash-Lite",
+     "org": "Google",
+     "date": "2026-03-03",
+     "date_source": "Epoch AI",
+     "epoch_group": "Gemini 3.1 Flash-Lite",
+     "variants": [
+      {
+       "variant": "default",
+       "score": 4229.1,
+       "country": 0.83,
+       "median_score": 4563,
+       "median_distance_km": 175.0,
+       "refusal": 0.0,
+       "n": 100,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "geobench.org"
+      }
+     ]
+    },
+    {
+     "model": "Grok 4.3",
+     "org": "xAI",
+     "date": "2026-04-17",
+     "date_source": "Epoch AI",
+     "epoch_group": "Grok 4.3 Beta",
+     "variants": [
+      {
+       "variant": "default",
+       "score": 3229.4,
+       "country": 0.56,
+       "median_score": 3968,
+       "median_distance_km": 439.5,
+       "refusal": 0.0,
+       "n": 100,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "geobench.org"
+      }
+     ]
+    },
+    {
+     "model": "GPT-5.5",
+     "org": "OpenAI",
+     "date": "2026-04-23",
+     "date_source": "Epoch AI",
+     "epoch_group": "GPT-5.5",
+     "variants": [
+      {
+       "variant": "Medium",
+       "score": 3897.2,
+       "country": 0.74,
+       "median_score": 4490,
+       "median_distance_km": 199.5,
+       "refusal": 0.0,
+       "n": 100,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "local run"
+      },
+      {
+       "variant": "Low",
+       "score": 3764.4,
+       "country": 0.74,
+       "median_score": 4382,
+       "median_distance_km": 254.2,
+       "refusal": 0.0,
+       "n": 100,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "local run"
+      },
+      {
+       "variant": "High",
+       "score": 3687.5,
+       "country": 0.71,
+       "median_score": 4464,
+       "median_distance_km": 213.6,
+       "refusal": 0.0,
+       "n": 100,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "local run"
+      }
+     ]
+    },
+    {
+     "model": "Mistral Medium 3.5",
+     "org": "Mistral",
+     "date": "2026-04-28",
+     "date_source": "Epoch AI",
+     "epoch_group": "Mistral Medium 3.5",
+     "variants": [
+      {
+       "variant": "default",
+       "score": 3208.1,
+       "country": 0.56,
+       "median_score": 3784,
+       "median_distance_km": 534.8,
+       "refusal": 0.0,
+       "n": 100,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "geobench.org"
+      }
+     ]
+    },
+    {
+     "model": "Gemini 3.5 Flash",
+     "org": "Google",
+     "date": "2026-05-19",
+     "date_source": "Epoch AI",
+     "epoch_group": "Gemini 3.5 Flash",
+     "variants": [
+      {
+       "variant": "default",
+       "score": 4288.2,
+       "country": 0.85,
+       "median_score": 4611,
+       "median_distance_km": 153.8,
+       "refusal": 0.0,
+       "n": 100,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "geobench.org"
+      }
+     ]
+    },
+    {
+     "model": "Claude Opus 4.8",
+     "org": "Anthropic",
+     "date": "2026-05-28",
+     "date_source": "Epoch AI",
+     "epoch_group": "Claude Opus 4.8",
+     "variants": [
+      {
+       "variant": "Thinking",
+       "score": 4127.8,
+       "country": 0.81,
+       "median_score": 4579,
+       "median_distance_km": 175.0,
+       "refusal": 0.0,
+       "n": 100,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "geobench.org"
+      }
+     ]
+    },
+    {
+     "model": "Claude Fable 5",
+     "org": "Anthropic",
+     "date": "2026-06-09",
+     "date_source": "Epoch AI",
+     "epoch_group": "Claude Fable 5",
+     "variants": [
+      {
+       "variant": "geoguessr prompt",
+       "score": 4472.1,
+       "country": 0.91,
+       "median_score": 4747,
+       "median_distance_km": 103.0,
+       "refusal": 0.0,
+       "n": 100,
+       "tools": false,
+       "prompt_tuned": true,
+       "source": "local run"
+      },
+      {
+       "variant": "default",
+       "score": 4449.0,
+       "country": 0.91,
+       "median_score": 4788,
+       "median_distance_km": 94.5,
+       "refusal": 0.0,
+       "n": 100,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "local run"
+      },
+      {
+       "variant": "default",
+       "score": 4403.7,
+       "country": 0.89,
+       "median_score": 4714,
+       "median_distance_km": 109.3,
+       "refusal": 0.0,
+       "n": 100,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "geobench.org"
+      }
+     ]
+    },
+    {
+     "model": "Claude Sonnet 5",
+     "org": "Anthropic",
+     "date": "2026-06-30",
+     "date_source": "Epoch AI",
+     "epoch_group": "Claude Sonnet 5",
+     "variants": [
+      {
+       "variant": "default",
+       "score": 3878.4,
+       "country": 0.74,
+       "median_score": 4386,
+       "median_distance_km": 248.9,
+       "refusal": 0.0,
+       "n": 100,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "geobench.org"
+      }
+     ]
+    },
+    {
+     "model": "GPT-5.6 Luna",
+     "org": "OpenAI",
+     "date": "2026-07-09",
+     "date_source": "Epoch AI",
+     "epoch_group": "GPT-5.6 Luna",
+     "variants": [
+      {
+       "variant": "High",
+       "score": 3321.2,
+       "country": 0.61,
+       "median_score": 3864,
+       "median_distance_km": 477.7,
+       "refusal": 0.01,
+       "n": 100,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "local run"
+      },
+      {
+       "variant": "Medium",
+       "score": 3288.9,
+       "country": 0.54,
+       "median_score": 3934,
+       "median_distance_km": 459.2,
+       "refusal": 0.04,
+       "n": 100,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "local run"
+      },
+      {
+       "variant": "Low",
+       "score": 3165.0,
+       "country": 0.52,
+       "median_score": 3759,
+       "median_distance_km": 528.8,
+       "refusal": 0.07,
+       "n": 100,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "local run"
+      }
+     ]
+    },
+    {
+     "model": "GPT-5.6 Sol",
+     "org": "OpenAI",
+     "date": "2026-07-09",
+     "date_source": "Epoch AI",
+     "epoch_group": "GPT-5.6 Sol",
+     "variants": [
+      {
+       "variant": "Low",
+       "score": 3811.5,
+       "country": 0.74,
+       "median_score": 4449,
+       "median_distance_km": 222.4,
+       "refusal": 0.0,
+       "n": 100,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "local run"
+      },
+      {
+       "variant": "Medium",
+       "score": 3762.7,
+       "country": 0.76,
+       "median_score": 4437,
+       "median_distance_km": 221.9,
+       "refusal": 0.0,
+       "n": 100,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "local run"
+      },
+      {
+       "variant": "High",
+       "score": 3680.2,
+       "country": 0.72,
+       "median_score": 4435,
+       "median_distance_km": 226.6,
+       "refusal": 0.0,
+       "n": 100,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "local run"
+      }
+     ]
+    },
+    {
+     "model": "GPT-5.6 Terra",
+     "org": "OpenAI",
+     "date": "2026-07-09",
+     "date_source": "Epoch AI",
+     "epoch_group": "GPT-5.6 Terra",
+     "variants": [
+      {
+       "variant": "Medium",
+       "score": 3348.2,
+       "country": 0.61,
+       "median_score": 4202,
+       "median_distance_km": 335.5,
+       "refusal": 0.0,
+       "n": 100,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "local run"
+      },
+      {
+       "variant": "High",
+       "score": 3287.8,
+       "country": 0.57,
+       "median_score": 3878,
+       "median_distance_km": 472.9,
+       "refusal": 0.0,
+       "n": 100,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "local run"
+      },
+      {
+       "variant": "Low",
+       "score": 3173.1,
+       "country": 0.58,
+       "median_score": 3852,
+       "median_distance_km": 535.3,
+       "refusal": 0.0,
+       "n": 100,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "local run"
+      }
+     ]
+    },
+    {
+     "model": "Claude Opus 5",
+     "org": "Anthropic",
+     "date": "2026-07-24",
+     "date_source": "Epoch AI",
+     "epoch_group": "Claude Opus 5",
+     "variants": [
+      {
+       "variant": "Low",
+       "score": 4194.5,
+       "country": 0.82,
+       "median_score": 4643,
+       "median_distance_km": 138.6,
+       "refusal": 0.0,
+       "n": 100,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "local run"
+      },
+      {
+       "variant": "Medium",
+       "score": 4174.2,
+       "country": 0.82,
+       "median_score": 4675,
+       "median_distance_km": 125.5,
+       "refusal": 0.0,
+       "n": 100,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "local run"
+      },
+      {
+       "variant": "High",
+       "score": 4154.0,
+       "country": 0.81,
+       "median_score": 4681,
+       "median_distance_km": 127.8,
+       "refusal": 0.0,
+       "n": 100,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "local run"
+      },
+      {
+       "variant": "XHigh",
+       "score": 4103.4,
+       "country": 0.77,
+       "median_score": 4592,
+       "median_distance_km": 170.5,
+       "refusal": 0.0,
+       "n": 100,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "local run"
+      }
+     ]
+    },
+    {
+     "model": "Claude Fable 5.1",
+     "org": "Anthropic",
+     "date": "2026-09-01",
+     "date_source": "Epoch AI",
+     "epoch_group": "Claude Fable 5.1",
+     "variants": [
+      {
+       "variant": "Medium",
+       "score": 4394.7,
+       "country": 0.91,
+       "median_score": 4715,
+       "median_distance_km": 109.4,
+       "refusal": 0.0,
+       "n": 100,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "local run"
+      },
+      {
+       "variant": "Low",
+       "score": 4334.2,
+       "country": 0.88,
+       "median_score": 4703,
+       "median_distance_km": 117.2,
+       "refusal": 0.0,
+       "n": 100,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "local run"
+      },
+      {
+       "variant": "High",
+       "score": 4317.9,
+       "country": 0.86,
+       "median_score": 4704,
+       "median_distance_km": 117.2,
+       "refusal": 0.0,
+       "n": 100,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "local run"
+      },
+      {
+       "variant": "XHigh",
+       "score": 4284.9,
+       "country": 0.84,
+       "median_score": 4721,
+       "median_distance_km": 109.3,
+       "refusal": 0.0,
+       "n": 100,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "local run"
+      }
+     ]
+    },
+    {
+     "model": "GPT-6 Astra",
+     "org": "OpenAI",
+     "date": "2026-09-03",
+     "date_source": "Epoch AI",
+     "epoch_group": "GPT-6 Astra",
+     "variants": [
+      {
+       "variant": "Low",
+       "score": 4186.0,
+       "country": 0.84,
+       "median_score": 4597,
+       "median_distance_km": 156.2,
+       "refusal": 0.0,
+       "n": 100,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "local run"
+      },
+      {
+       "variant": "Medium",
+       "score": 4154.1,
+       "country": 0.84,
+       "median_score": 4618,
+       "median_distance_km": 151.5,
+       "refusal": 0.0,
+       "n": 100,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "local run"
+      },
+      {
+       "variant": "High",
+       "score": 4009.3,
+       "country": 0.77,
+       "median_score": 4555,
+       "median_distance_km": 175.6,
+       "refusal": 0.0,
+       "n": 100,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "local run"
+      },
+      {
+       "variant": "XHigh",
+       "score": 3999.8,
+       "country": 0.78,
+       "median_score": 4504,
+       "median_distance_km": 197.4,
+       "refusal": 0.0,
+       "n": 100,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "local run"
+      }
+     ]
+    }
+   ]
+  },
+  "photospheres": {
+   "id": "photospheres",
+   "test_id": "geoguessr-2069-03-27-25",
+   "label": "Photospheres",
+   "locations": 50,
+   "models": [
+    {
+     "model": "GPT-4o mini",
+     "org": "OpenAI",
+     "date": "2024-07-18",
+     "date_source": "Epoch AI",
+     "epoch_group": "GPT-4o mini",
+     "variants": [
+      {
+       "variant": "default",
+       "score": 2831.1,
+       "country": 0.44,
+       "median_score": 3394,
+       "median_distance_km": 538.5,
+       "refusal": 0.0,
+       "n": 50,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "geobench.org"
+      }
+     ]
+    },
+    {
+     "model": "Qwen2.5-VL-72B",
+     "org": "Alibaba",
+     "date": "2024-09-19",
+     "date_source": "Epoch AI",
+     "epoch_group": "Qwen2.5-72B",
+     "variants": [
+      {
+       "variant": "default",
+       "score": 3285.7,
+       "country": 0.5,
+       "median_score": 3826,
+       "median_distance_km": 378.6,
+       "refusal": 0.0,
+       "n": 50,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "geobench.org"
+      }
+     ]
+    },
+    {
+     "model": "Gemini 1.5 Flash",
+     "org": "Google",
+     "date": "2024-09-24",
+     "date_source": "Epoch AI",
+     "epoch_group": "Gemini 1.5 Flash (Sep 2024)",
+     "variants": [
+      {
+       "variant": "default",
+       "score": 3457.8,
+       "country": 0.64,
+       "median_score": 4179,
+       "median_distance_km": 257.5,
+       "refusal": 0.0,
+       "n": 50,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "geobench.org"
+      }
+     ]
+    },
+    {
+     "model": "Claude 3.5 Sonnet",
+     "org": "Anthropic",
+     "date": "2024-10-22",
+     "date_source": "Epoch AI",
+     "epoch_group": "Claude 3.5 Sonnet (October 2024)",
+     "variants": [
+      {
+       "variant": "default",
+       "score": 2919.2,
+       "country": 0.48,
+       "median_score": 3713,
+       "median_distance_km": 486.2,
+       "refusal": 0.0,
+       "n": 50,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "geobench.org"
+      }
+     ]
+    },
+    {
+     "model": "GPT-4o",
+     "org": "OpenAI",
+     "date": "2024-11-20",
+     "date_source": "Epoch AI",
+     "epoch_group": "GPT-4o (Nov 2024)",
+     "variants": [
+      {
+       "variant": "default",
+       "score": 3426.0,
+       "country": 0.6,
+       "median_score": 4152,
+       "median_distance_km": 294.1,
+       "refusal": 0.0,
+       "n": 50,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "geobench.org"
+      }
+     ]
+    },
+    {
+     "model": "o1",
+     "org": "OpenAI",
+     "date": "2024-12-17",
+     "date_source": "Epoch AI",
+     "epoch_group": "o1",
+     "variants": [
+      {
+       "variant": "default",
+       "score": 3329.8,
+       "country": 0.52,
+       "median_score": 4061,
+       "median_distance_km": 312.8,
+       "refusal": 0.0,
+       "n": 50,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "geobench.org"
+      }
+     ]
+    },
+    {
+     "model": "Gemini 2.0 Flash",
+     "org": "Google",
+     "date": "2025-02-05",
+     "date_source": "Epoch AI",
+     "epoch_group": "Gemini 2.0 Flash (Feb 2025)",
+     "variants": [
+      {
+       "variant": "default",
+       "score": 3658.6,
+       "country": 0.6,
+       "median_score": 4072.5,
+       "median_distance_km": 284.3,
+       "refusal": 0.0,
+       "n": 50,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "geobench.org"
+      }
+     ]
+    },
+    {
+     "model": "Claude 3.7 Sonnet",
+     "org": "Anthropic",
+     "date": "2025-02-24",
+     "date_source": "Epoch AI",
+     "epoch_group": "Claude 3.7 Sonnet",
+     "variants": [
+      {
+       "variant": "default",
+       "score": 3123.0,
+       "country": 0.48,
+       "median_score": 3898,
+       "median_distance_km": 370.7,
+       "refusal": 0.0,
+       "n": 50,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "geobench.org"
+      },
+      {
+       "variant": "Thinking",
+       "score": 3026.7,
+       "country": 0.42,
+       "median_score": 3764,
+       "median_distance_km": 471.8,
+       "refusal": 0.0,
+       "n": 50,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "geobench.org"
+      }
+     ]
+    },
+    {
+     "model": "Gemma 3 27B",
+     "org": "Google",
+     "date": "2025-03-12",
+     "date_source": "Epoch AI",
+     "epoch_group": "Gemma 3 27B",
+     "variants": [
+      {
+       "variant": "default",
+       "score": 2856.8,
+       "country": 0.4,
+       "median_score": 3564,
+       "median_distance_km": 474.5,
+       "refusal": 0.0,
+       "n": 50,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "geobench.org"
+      }
+     ]
+    },
+    {
+     "model": "Gemini 2.5 Pro (Mar 2025)",
+     "org": "Google",
+     "date": "2025-03-25",
+     "date_source": "Epoch AI",
+     "epoch_group": "Gemini 2.5 Pro (Mar 2025)",
+     "variants": [
+      {
+       "variant": "default",
+       "score": 3870.6,
+       "country": 0.68,
+       "median_score": 4522.5,
+       "median_distance_km": 139.0,
+       "refusal": 0.0,
+       "n": 50,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "geobench.org"
+      }
+     ]
+    },
+    {
+     "model": "Llama 4 Maverick",
+     "org": "Meta",
+     "date": "2025-04-05",
+     "date_source": "Epoch AI",
+     "epoch_group": "Llama 4 Maverick",
+     "variants": [
+      {
+       "variant": "default",
+       "score": 2941.6,
+       "country": 0.5,
+       "median_score": 3580,
+       "median_distance_km": 462.8,
+       "refusal": 0.02,
+       "n": 50,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "geobench.org"
+      }
+     ]
+    },
+    {
+     "model": "o3",
+     "org": "OpenAI",
+     "date": "2025-04-16",
+     "date_source": "Epoch AI",
+     "epoch_group": "o3",
+     "variants": [
+      {
+       "variant": "High",
+       "score": 3788.5,
+       "country": 0.56,
+       "median_score": 4194,
+       "median_distance_km": 243.6,
+       "refusal": 0.1,
+       "n": 50,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "geobench.org"
+      }
+     ]
+    },
+    {
+     "model": "o4-mini",
+     "org": "OpenAI",
+     "date": "2025-04-16",
+     "date_source": "Epoch AI",
+     "epoch_group": "o4-mini",
+     "variants": [
+      {
+       "variant": "High",
+       "score": 3436.9,
+       "country": 0.52,
+       "median_score": 4150,
+       "median_distance_km": 258.2,
+       "refusal": 0.02,
+       "n": 50,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "geobench.org"
+      }
+     ]
+    },
+    {
+     "model": "Gemini 2.5 Flash (Apr 2025)",
+     "org": "Google",
+     "date": "2025-04-17",
+     "date_source": "Epoch AI",
+     "epoch_group": "Gemini 2.5 Flash (Apr 2025)",
+     "variants": [
+      {
+       "variant": "default",
+       "score": 3873.0,
+       "country": 0.66,
+       "median_score": 4352,
+       "median_distance_km": 215.5,
+       "refusal": 0.0,
+       "n": 50,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "geobench.org"
+      }
+     ]
+    },
+    {
+     "model": "Gemini 2.5 Pro (May 2025)",
+     "org": "Google",
+     "date": "2025-05-06",
+     "date_source": "Epoch AI",
+     "epoch_group": "Gemini 2.5 Pro (May 2025)",
+     "variants": [
+      {
+       "variant": "default",
+       "score": 3835.6,
+       "country": 0.7,
+       "median_score": 4435,
+       "median_distance_km": 186.9,
+       "refusal": 0.0,
+       "n": 50,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "geobench.org"
+      }
+     ]
+    },
+    {
+     "model": "GPT-5",
+     "org": "OpenAI",
+     "date": "2025-08-07",
+     "date_source": "Epoch AI",
+     "epoch_group": "GPT-5",
+     "variants": [
+      {
+       "variant": "High",
+       "score": 3658.8,
+       "country": 0.58,
+       "median_score": 4288,
+       "median_distance_km": 238.1,
+       "refusal": 0.0,
+       "n": 50,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "local run"
+      },
+      {
+       "variant": "Medium",
+       "score": 3559.5,
+       "country": 0.6,
+       "median_score": 4376,
+       "median_distance_km": 186.9,
+       "refusal": 0.0,
+       "n": 50,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "local run"
+      },
+      {
+       "variant": "Medium",
+       "score": 3498.3,
+       "country": 0.58,
+       "median_score": 4082,
+       "median_distance_km": 287.9,
+       "refusal": 0.0,
+       "n": 50,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "geobench.org"
+      },
+      {
+       "variant": "Low",
+       "score": 3443.5,
+       "country": 0.64,
+       "median_score": 4185,
+       "median_distance_km": 282.1,
+       "refusal": 0.0,
+       "n": 50,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "local run"
+      }
+     ]
+    },
+    {
+     "model": "Qwen3-VL-235B",
+     "org": "Alibaba",
+     "date": "2025-09-23",
+     "date_source": "Qwen release announcement",
+     "epoch_group": "",
+     "variants": [
+      {
+       "variant": "default",
+       "score": 3356.3,
+       "country": 0.56,
+       "median_score": 4031,
+       "median_distance_km": 335.0,
+       "refusal": 0.0,
+       "n": 50,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "geobench.org"
+      }
+     ]
+    },
+    {
+     "model": "Gemini 3 Pro",
+     "org": "Google",
+     "date": "2025-11-18",
+     "date_source": "Epoch AI",
+     "epoch_group": "Gemini 3 Pro",
+     "variants": [
+      {
+       "variant": "default",
+       "score": 3893.2,
+       "country": 0.74,
+       "median_score": 4364,
+       "median_distance_km": 203.3,
+       "refusal": 0.0,
+       "n": 50,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "geobench.org"
+      }
+     ]
+    },
+    {
+     "model": "Claude Opus 4.5",
+     "org": "Anthropic",
+     "date": "2025-11-24",
+     "date_source": "Epoch AI",
+     "epoch_group": "Claude Opus 4.5",
+     "variants": [
+      {
+       "variant": "Thinking",
+       "score": 3797.0,
+       "country": 0.7,
+       "median_score": 4460,
+       "median_distance_km": 185.3,
+       "refusal": 0.0,
+       "n": 50,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "geobench.org"
+      }
+     ]
+    },
+    {
+     "model": "GLM-4.6V",
+     "org": "Z.ai",
+     "date": "2025-12-09",
+     "date_source": "Z.ai release announcement",
+     "epoch_group": "",
+     "variants": [
+      {
+       "variant": "default",
+       "score": 3463.6,
+       "country": 0.58,
+       "median_score": 4054,
+       "median_distance_km": 294.4,
+       "refusal": 0.0,
+       "n": 50,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "geobench.org"
+      }
+     ]
+    },
+    {
+     "model": "Gemini 3 Flash",
+     "org": "Google",
+     "date": "2025-12-17",
+     "date_source": "Epoch AI",
+     "epoch_group": "Gemini 3 Flash",
+     "variants": [
+      {
+       "variant": "default",
+       "score": 4204.3,
+       "country": 0.78,
+       "median_score": 4623,
+       "median_distance_km": 115.5,
+       "refusal": 0.0,
+       "n": 50,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "geobench.org"
+      }
+     ]
+    },
+    {
+     "model": "Claude Opus 4.6",
+     "org": "Anthropic",
+     "date": "2026-02-05",
+     "date_source": "Epoch AI",
+     "epoch_group": "Claude Opus 4.6",
+     "variants": [
+      {
+       "variant": "Thinking",
+       "score": 3606.8,
+       "country": 0.58,
+       "median_score": 4275,
+       "median_distance_km": 229.5,
+       "refusal": 0.0,
+       "n": 50,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "geobench.org"
+      }
+     ]
+    },
+    {
+     "model": "Claude Sonnet 4.6",
+     "org": "Anthropic",
+     "date": "2026-02-17",
+     "date_source": "Epoch AI",
+     "epoch_group": "Claude Sonnet 4.6",
+     "variants": [
+      {
+       "variant": "Thinking",
+       "score": 3658.2,
+       "country": 0.52,
+       "median_score": 4254,
+       "median_distance_km": 232.2,
+       "refusal": 0.0,
+       "n": 50,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "geobench.org"
+      }
+     ]
+    },
+    {
+     "model": "Gemini 3.1 Flash-Lite",
+     "org": "Google",
+     "date": "2026-03-03",
+     "date_source": "Epoch AI",
+     "epoch_group": "Gemini 3.1 Flash-Lite",
+     "variants": [
+      {
+       "variant": "default",
+       "score": 3964.1,
+       "country": 0.68,
+       "median_score": 4447,
+       "median_distance_km": 167.3,
+       "refusal": 0.0,
+       "n": 50,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "geobench.org"
+      }
+     ]
+    },
+    {
+     "model": "GPT-5.4",
+     "org": "OpenAI",
+     "date": "2026-03-05",
+     "date_source": "Epoch AI",
+     "epoch_group": "GPT-5.4",
+     "variants": [
+      {
+       "variant": "High",
+       "score": 3078.5,
+       "country": 0.52,
+       "median_score": 3957,
+       "median_distance_km": 362.6,
+       "refusal": 0.0,
+       "n": 50,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "geobench.org"
+      }
+     ]
+    },
+    {
+     "model": "Grok 4.3",
+     "org": "xAI",
+     "date": "2026-04-17",
+     "date_source": "Epoch AI",
+     "epoch_group": "Grok 4.3 Beta",
+     "variants": [
+      {
+       "variant": "default",
+       "score": 2920.2,
+       "country": 0.5,
+       "median_score": 3639,
+       "median_distance_km": 445.1,
+       "refusal": 0.0,
+       "n": 50,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "geobench.org"
+      }
+     ]
+    },
+    {
+     "model": "GPT-5.5",
+     "org": "OpenAI",
+     "date": "2026-04-23",
+     "date_source": "Epoch AI",
+     "epoch_group": "GPT-5.5",
+     "variants": [
+      {
+       "variant": "High",
+       "score": 3832.2,
+       "country": 0.62,
+       "median_score": 4565,
+       "median_distance_km": 156.4,
+       "refusal": 0.0,
+       "n": 50,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "local run"
+      },
+      {
+       "variant": "Medium",
+       "score": 3642.1,
+       "country": 0.66,
+       "median_score": 4490,
+       "median_distance_km": 153.1,
+       "refusal": 0.0,
+       "n": 50,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "local run"
+      },
+      {
+       "variant": "Low",
+       "score": 3554.4,
+       "country": 0.58,
+       "median_score": 4437,
+       "median_distance_km": 213.2,
+       "refusal": 0.0,
+       "n": 50,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "local run"
+      }
+     ]
+    },
+    {
+     "model": "Mistral Medium 3.5",
+     "org": "Mistral",
+     "date": "2026-04-28",
+     "date_source": "Epoch AI",
+     "epoch_group": "Mistral Medium 3.5",
+     "variants": [
+      {
+       "variant": "default",
+       "score": 2714.8,
+       "country": 0.38,
+       "median_score": 3150,
+       "median_distance_km": 813.2,
+       "refusal": 0.0,
+       "n": 50,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "geobench.org"
+      }
+     ]
+    },
+    {
+     "model": "Gemini 3.5 Flash",
+     "org": "Google",
+     "date": "2026-05-19",
+     "date_source": "Epoch AI",
+     "epoch_group": "Gemini 3.5 Flash",
+     "variants": [
+      {
+       "variant": "default",
+       "score": 3844.9,
+       "country": 0.74,
+       "median_score": 4480,
+       "median_distance_km": 185.4,
+       "refusal": 0.0,
+       "n": 50,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "geobench.org"
+      }
+     ]
+    },
+    {
+     "model": "Claude Opus 4.8",
+     "org": "Anthropic",
+     "date": "2026-05-28",
+     "date_source": "Epoch AI",
+     "epoch_group": "Claude Opus 4.8",
+     "variants": [
+      {
+       "variant": "Thinking",
+       "score": 4101.6,
+       "country": 0.68,
+       "median_score": 4711,
+       "median_distance_km": 97.7,
+       "refusal": 0.0,
+       "n": 50,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "geobench.org"
+      }
+     ]
+    },
+    {
+     "model": "Claude Fable 5",
+     "org": "Anthropic",
+     "date": "2026-06-09",
+     "date_source": "Epoch AI",
+     "epoch_group": "Claude Fable 5",
+     "variants": [
+      {
+       "variant": "default",
+       "score": 4313.6,
+       "country": 0.74,
+       "median_score": 4804,
+       "median_distance_km": 56.1,
+       "refusal": 0.0,
+       "n": 50,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "geobench.org"
+      }
+     ]
+    },
+    {
+     "model": "Claude Sonnet 5",
+     "org": "Anthropic",
+     "date": "2026-06-30",
+     "date_source": "Epoch AI",
+     "epoch_group": "Claude Sonnet 5",
+     "variants": [
+      {
+       "variant": "default",
+       "score": 3713.5,
+       "country": 0.56,
+       "median_score": 4121,
+       "median_distance_km": 288.7,
+       "refusal": 0.0,
+       "n": 50,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "geobench.org"
+      }
+     ]
+    },
+    {
+     "model": "GPT-5.6 Luna",
+     "org": "OpenAI",
+     "date": "2026-07-09",
+     "date_source": "Epoch AI",
+     "epoch_group": "GPT-5.6 Luna",
+     "variants": [
+      {
+       "variant": "Medium",
+       "score": 3063.5,
+       "country": 0.46,
+       "median_score": 4089,
+       "median_distance_km": 296.2,
+       "refusal": 0.0,
+       "n": 50,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "local run"
+      },
+      {
+       "variant": "High",
+       "score": 3039.1,
+       "country": 0.46,
+       "median_score": 3920,
+       "median_distance_km": 337.2,
+       "refusal": 0.02,
+       "n": 50,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "local run"
+      },
+      {
+       "variant": "Low",
+       "score": 2933.3,
+       "country": 0.46,
+       "median_score": 3601,
+       "median_distance_km": 514.5,
+       "refusal": 0.08,
+       "n": 50,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "local run"
+      }
+     ]
+    },
+    {
+     "model": "GPT-5.6 Sol",
+     "org": "OpenAI",
+     "date": "2026-07-09",
+     "date_source": "Epoch AI",
+     "epoch_group": "GPT-5.6 Sol",
+     "variants": [
+      {
+       "variant": "Medium",
+       "score": 4053.2,
+       "country": 0.76,
+       "median_score": 4726,
+       "median_distance_km": 80.1,
+       "refusal": 0.0,
+       "n": 50,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "local run"
+      },
+      {
+       "variant": "Low",
+       "score": 3777.0,
+       "country": 0.7,
+       "median_score": 4457,
+       "median_distance_km": 184.9,
+       "refusal": 0.0,
+       "n": 50,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "local run"
+      },
+      {
+       "variant": "High",
+       "score": 3725.6,
+       "country": 0.7,
+       "median_score": 4630,
+       "median_distance_km": 135.2,
+       "refusal": 0.0,
+       "n": 50,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "local run"
+      }
+     ]
+    },
+    {
+     "model": "GPT-5.6 Terra",
+     "org": "OpenAI",
+     "date": "2026-07-09",
+     "date_source": "Epoch AI",
+     "epoch_group": "GPT-5.6 Terra",
+     "variants": [
+      {
+       "variant": "Medium",
+       "score": 3079.7,
+       "country": 0.5,
+       "median_score": 3719,
+       "median_distance_km": 426.4,
+       "refusal": 0.0,
+       "n": 50,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "local run"
+      },
+      {
+       "variant": "High",
+       "score": 3075.2,
+       "country": 0.44,
+       "median_score": 3708,
+       "median_distance_km": 424.9,
+       "refusal": 0.0,
+       "n": 50,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "local run"
+      },
+      {
+       "variant": "Low",
+       "score": 2991.4,
+       "country": 0.48,
+       "median_score": 3784,
+       "median_distance_km": 436.5,
+       "refusal": 0.0,
+       "n": 50,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "local run"
+      }
+     ]
+    },
+    {
+     "model": "GPT-6 Astra",
+     "org": "OpenAI",
+     "date": "2026-09-03",
+     "date_source": "Epoch AI",
+     "epoch_group": "GPT-6 Astra",
+     "variants": [
+      {
+       "variant": "Medium",
+       "score": 3789.8,
+       "country": 0.68,
+       "median_score": 4637,
+       "median_distance_km": 107.5,
+       "refusal": 0.0,
+       "n": 50,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "local run"
+      },
+      {
+       "variant": "High",
+       "score": 3761.1,
+       "country": 0.7,
+       "median_score": 4637,
+       "median_distance_km": 110.2,
+       "refusal": 0.0,
+       "n": 50,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "local run"
+      },
+      {
+       "variant": "Low",
+       "score": 3679.1,
+       "country": 0.66,
+       "median_score": 4623,
+       "median_distance_km": 109.6,
+       "refusal": 0.0,
+       "n": 50,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "local run"
+      }
+     ]
+    }
+   ]
+  }
+ }
+}
