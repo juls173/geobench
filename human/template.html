@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GeoBench — Play it yourself</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+/* ---------------------------------------------------------------------------
+   Same ink as visualizations/viewer: strict grid, hairline rules, flush-left
+   type, one accent. Black on warm paper, nothing decorative.
+   --------------------------------------------------------------------------- */
+:root {
+  --paper:   #f2f1ee;
+  --surface: #ffffff;
+  --ink:     #111111;
+  --ink-2:   #56534e;
+  --ink-3:   #8d8983;
+  --rule:    #d8d5cf;
+  --rule-2:  #ebe9e5;
+  --accent:  #d81e05;
+  --good:    #1a6b3c;
+
+  --sans: "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 14px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+}
+h1, h2, h3 { margin: 0; font-weight: 600; letter-spacing: -.01em; }
+button { font: inherit; color: inherit; }
+a { color: var(--accent); }
+
+.mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.dim  { color: var(--ink-3); }
+.label {
+  font-size: 10px; font-weight: 600; letter-spacing: .14em;
+  text-transform: uppercase; color: var(--ink-3);
+}
+
+/* --- frame --- */
+.bar {
+  display: flex; align-items: center; gap: 20px;
+  padding: 0 20px; height: 52px;
+  background: var(--surface); border-bottom: 1px solid var(--rule);
+  position: sticky; top: 0; z-index: 500;
+}
+.bar h1 { font-size: 14px; }
+.bar .sep { width: 1px; height: 20px; background: var(--rule); }
+.pips { display: flex; gap: 4px; margin-left: auto; }
+.pip {
+  width: 22px; height: 5px; background: var(--rule);
+  border-radius: 1px;
+}
+.pip.done { background: var(--ink); }
+.pip.now  { background: var(--accent); }
+.tally { font-family: var(--mono); font-size: 13px; }
+.tally b { font-weight: 600; }
+
+main { padding: 20px; max-width: 1680px; margin: 0 auto; }
+.panes {
+  display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(380px, 1fr);
+  gap: 20px; align-items: start;
+}
+@media (max-width: 1100px) { .panes { grid-template-columns: 1fr; } }
+
+.card {
+  background: var(--surface); border: 1px solid var(--rule);
+}
+.card > header {
+  display: flex; align-items: baseline; gap: 10px;
+  padding: 10px 14px; border-bottom: 1px solid var(--rule-2);
+}
+.card > .body { padding: 14px; }
+
+/* --- image --- */
+.shot-wrap { position: relative; background: #111; }
+#shot { display: block; width: 100%; height: auto; cursor: zoom-in; }
+.shot-note {
+  display: flex; justify-content: space-between; gap: 12px;
+  padding: 8px 14px; border-top: 1px solid var(--rule-2); font-size: 12px;
+  color: var(--ink-3);
+}
+
+/* --- guessing --- */
+#map { height: 420px; background: var(--rule-2); }
+#map.dead { display: flex; align-items: center; justify-content: center;
+            padding: 24px; text-align: center; color: var(--ink-3); font-size: 12px; }
+.leaflet-container { font-family: var(--sans); }
+.leaflet-control-attribution { font-size: 9px; }
+.leaflet-tile-pane { filter: grayscale(1) contrast(.9) brightness(1.06); }
+
+.field { display: block; margin-top: 14px; }
+.field .label { display: block; margin-bottom: 5px; }
+input[type=text], textarea {
+  width: 100%; padding: 8px 10px;
+  background: var(--paper); color: var(--ink);
+  border: 1px solid var(--rule); border-radius: 0;
+  font-family: var(--sans); font-size: 13px;
+}
+input.mono { font-family: var(--mono); }
+input:focus, textarea:focus { outline: 2px solid var(--ink); outline-offset: -1px; }
+textarea { min-height: 150px; resize: vertical; line-height: 1.5; }
+.coords { display: grid; grid-template-columns: 1fr 1fr auto; gap: 8px; align-items: end; }
+
+.btn {
+  padding: 9px 16px; background: var(--ink); color: var(--paper);
+  border: 1px solid var(--ink); cursor: pointer; font-weight: 500;
+}
+.btn:hover { background: #000; }
+.btn:disabled { background: var(--rule); border-color: var(--rule); color: var(--ink-3); cursor: not-allowed; }
+.btn.ghost { background: transparent; color: var(--ink); border-color: var(--rule); font-weight: 400; }
+.btn.ghost:hover { border-color: var(--ink); background: transparent; }
+.actions { display: flex; align-items: center; gap: 12px; margin-top: 16px; }
+.err { color: var(--accent); font-size: 12px; min-height: 16px; margin-top: 8px; }
+
+/* --- reveal --- */
+.stats { display: flex; flex-wrap: wrap; gap: 26px; }
+.stat .label { display: block; }
+.stat .v { font-family: var(--mono); font-size: 26px; line-height: 1.2; }
+.stat .v.small { font-size: 18px; }
+.ok   { color: var(--good); }
+.bad  { color: var(--accent); }
+
+.verdict { padding: 12px 14px; border-bottom: 1px solid var(--rule-2); font-size: 13px; }
+
+table.field-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.field-table th {
+  text-align: left; font-size: 10px; letter-spacing: .12em; text-transform: uppercase;
+  color: var(--ink-3); font-weight: 600; padding: 6px 10px;
+  border-bottom: 1px solid var(--rule); position: sticky; top: 0; background: var(--surface);
+}
+.field-table td { padding: 6px 10px; border-bottom: 1px solid var(--rule-2); vertical-align: top; }
+.field-table tr.you td { background: #fff4f2; font-weight: 600; }
+.field-table tr.model { cursor: pointer; }
+.field-table tr.model:hover td { background: var(--paper); }
+.field-table td.num { font-family: var(--mono); text-align: right; white-space: nowrap; }
+.bar-cell { width: 92px; }
+.scorebar { height: 6px; background: var(--rule-2); }
+.scorebar i { display: block; height: 100%; background: var(--ink); }
+tr.you .scorebar i { background: var(--accent); }
+.why {
+  padding: 10px 14px 14px 30px; font-size: 12.5px; color: var(--ink-2);
+  white-space: pre-wrap; background: var(--paper); border-bottom: 1px solid var(--rule-2);
+  max-height: 340px; overflow: auto;
+}
+.scroll { max-height: 460px; overflow: auto; }
+.tag {
+  font-size: 10px; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--ink-3); border: 1px solid var(--rule); padding: 1px 5px;
+}
+
+/* --- final --- */
+.final-head { display: flex; flex-wrap: wrap; gap: 30px; align-items: flex-end; }
+.rounds-strip { width: 100%; border-collapse: collapse; font-size: 13px; }
+.rounds-strip th { text-align: left; font-size: 10px; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--ink-3); font-weight: 600;
+  padding: 6px 10px; border-bottom: 1px solid var(--rule); }
+.rounds-strip td { padding: 6px 10px; border-bottom: 1px solid var(--rule-2); }
+.rounds-strip td.num { font-family: var(--mono); text-align: right; white-space: nowrap; }
+
+/* --- lightbox --- */
+#box {
+  position: fixed; inset: 0; z-index: 900; background: rgba(17,17,17,.94);
+  display: none; cursor: grab; overflow: hidden;
+}
+#box.on { display: block; }
+#box img { position: absolute; transform-origin: 0 0; max-width: none; }
+#box .hint {
+  position: fixed; left: 0; right: 0; bottom: 14px; text-align: center;
+  color: #cfcbc4; font-size: 11px; letter-spacing: .1em; text-transform: uppercase;
+}
+</style>
+</head>
+<body>
+
+<div class="bar">
+  <h1>GeoBench</h1>
+  <span class="sep"></span>
+  <span class="label" id="whoami"></span>
+  <span class="mono dim" id="roundNo"></span>
+  <div class="pips" id="pips"></div>
+  <span class="sep"></span>
+  <span class="tally" id="tally"></span>
+</div>
+
+<main>
+  <div class="panes" id="panes">
+    <!-- left: the image -->
+    <section class="card">
+      <div class="shot-wrap"><img id="shot" alt="Street View image"></div>
+      <div class="shot-note">
+        <span>Click the image (or press <b>f</b>) to zoom in — wheel to scale, drag to pan.</span>
+        <span class="mono" id="clock">0:00</span>
+      </div>
+    </section>
+
+    <!-- right: guess, then result -->
+    <aside>
+      <section class="card" id="guessCard">
+        <header><h2>Your guess</h2><span class="dim" id="mapHint">click the map to drop a pin</span></header>
+        <div id="map"></div>
+        <div class="body">
+          <div class="coords">
+            <label class="field" style="margin:0">
+              <span class="label">Lat</span>
+              <input type="text" class="mono" id="lat" placeholder="—" autocomplete="off">
+            </label>
+            <label class="field" style="margin:0">
+              <span class="label">Lng</span>
+              <input type="text" class="mono" id="lng" placeholder="—" autocomplete="off">
+            </label>
+            <button class="btn ghost" id="recentre" title="Back to the whole map">Reset</button>
+          </div>
+          <label class="field">
+            <span class="label">Country</span>
+            <input type="text" id="country" list="countries" autocomplete="off"
+                   placeholder="what country is this?">
+          </label>
+          <datalist id="countries"></datalist>
+          <label class="field">
+            <span class="label">Your reasoning</span>
+            <textarea id="why" placeholder="What made you land there? Driving side, bollards, plates, script on the signs, poles, vegetation, soil, camera generation…"></textarea>
+          </label>
+          <div class="actions">
+            <button class="btn" id="submit" disabled>Submit guess</button>
+            <span class="dim" style="font-size:12px">⌘/ctrl + enter</span>
+          </div>
+          <div class="err" id="err"></div>
+        </div>
+      </section>
+
+      <section class="card" id="resultCard" hidden>
+        <header><h2 id="resultTitle">Result</h2><span class="dim" id="resultSub"></span></header>
+        <div class="verdict" id="verdict"></div>
+        <div class="body">
+          <div class="stats" id="resultStats"></div>
+          <div class="actions">
+            <button class="btn" id="next">Next round →</button>
+            <span class="dim" style="font-size:12px">enter</span>
+          </div>
+        </div>
+      </section>
+    </aside>
+  </div>
+
+  <!-- the field, only ever after a submit -->
+  <section class="card" id="fieldCard" hidden style="margin-top:20px">
+    <header>
+      <h2>The same image, by everyone else</h2>
+      <span class="dim" id="fieldSub"></span>
+    </header>
+    <div class="scroll">
+      <table class="field-table">
+        <thead><tr>
+          <th style="width:34px">#</th><th>Who</th><th>Called it</th>
+          <th class="num">Error</th><th class="bar-cell">Score</th><th class="num"></th>
+        </tr></thead>
+        <tbody id="fieldRows"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- end of session -->
+  <section id="final" hidden>
+    <div class="card">
+      <header><h2>Final</h2><span class="dim" id="finalSub"></span></header>
+      <div class="body">
+        <div class="final-head stats" id="finalStats"></div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:20px">
+      <header><h2>Round by round</h2></header>
+      <table class="rounds-strip">
+        <thead><tr>
+          <th style="width:44px">Rd</th><th>Location</th><th class="num">Your error</th>
+          <th class="num">Score</th><th class="num">Time</th><th>Best model on it</th>
+        </tr></thead>
+        <tbody id="roundRows"></tbody>
+      </table>
+    </div>
+
+    <div class="card" style="margin-top:20px">
+      <header>
+        <h2>Standings on these locations</h2>
+        <span class="dim" id="standingsSub"></span>
+      </header>
+      <div class="scroll">
+        <table class="field-table">
+          <thead><tr>
+            <th style="width:34px">#</th><th>Who</th><th class="num">Points</th>
+            <th class="num">Avg km</th><th class="num">Median km</th><th class="num">Countries</th>
+          </tr></thead>
+          <tbody id="standingRows"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <p class="dim" style="font-size:12px;margin:16px 2px">
+      Saved to <span class="mono" id="runDir"></span> as an ordinary run folder —
+      browse it beside the models with
+      <span class="mono">python visualizations/viewer/build.py -d <span id="dsName"></span></span>.
+    </p>
+  </section>
+</main>
+
+<div id="box"><img id="boxImg" alt=""><div class="hint">wheel to zoom · drag to pan · click or esc to close</div></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const DATA = /*__DATA__*/;
+
+const $ = s => document.querySelector(s);
+const el = (tag, cls, text) => {
+  const n = document.createElement(tag);
+  if (cls) n.className = cls;
+  if (text != null) n.textContent = text;
+  return n;
+};
+const km = v => v == null ? '—' : v >= 100 ? Math.round(v).toLocaleString() : v.toFixed(1);
+const mmss = s => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
+
+const state = {
+  round: 0,
+  phase: 'guess',
+  pin: null,
+  started: 0,
+  points: 0,
+  played: 0,
+  done: new Set(DATA.done || []),
+};
+
+/* ---------- map ---------- */
+const TILES = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
+const B = DATA.bounds;
+const WORLD = [[B.min.lat, B.min.lng], [B.max.lat, B.max.lng]];
+let map = null, guessMark = null, truthMark = null, link = null;
+
+function initMap() {
+  if (typeof L === 'undefined') {
+    const dead = $('#map');
+    dead.classList.add('dead');
+    dead.textContent = 'No map: leaflet could not load (offline?). Type the latitude and longitude below instead.';
+    $('#mapHint').textContent = 'type coordinates below';
+    return;
+  }
+  map = L.map('map', { worldCopyJump: true, zoomSnap: .5 }).fitBounds(WORLD);
+  L.tileLayer(TILES, { maxZoom: 18, attribution: '&copy; OpenStreetMap' }).addTo(map);
+  map.on('click', e => setPin(e.latlng.lat, ((e.latlng.lng + 540) % 360) - 180));
+}
+
+const dot = (color, size) => L.divIcon({
+  className: '',
+  html: `<div style="width:${size}px;height:${size}px;border-radius:50%;background:${color};border:2px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.4)"></div>`,
+  iconSize: [size, size], iconAnchor: [size / 2, size / 2],
+});
+
+function setPin(lat, lng, quiet) {
+  state.pin = { lat, lng };
+  if (!quiet) { $('#lat').value = lat.toFixed(5); $('#lng').value = lng.toFixed(5); }
+  if (map) {
+    if (guessMark) guessMark.setLatLng([lat, lng]);
+    else {
+      guessMark = L.marker([lat, lng], { icon: dot('#d81e05', 14), draggable: true }).addTo(map);
+      guessMark.on('drag', e => {
+        const p = e.target.getLatLng();
+        state.pin = { lat: p.lat, lng: p.lng };
+        $('#lat').value = p.lat.toFixed(5); $('#lng').value = p.lng.toFixed(5);
+        checkReady();
+      });
+    }
+  }
+  checkReady();
+}
+
+function readCoordInputs() {
+  const lat = parseFloat($('#lat').value), lng = parseFloat($('#lng').value);
+  if (Number.isFinite(lat) && Number.isFinite(lng) &&
+      Math.abs(lat) <= 90 && Math.abs(lng) <= 180) setPin(lat, lng, true);
+  else { state.pin = null; checkReady(); }
+}
+
+function clearMarks() {
+  [guessMark, truthMark, link].forEach(m => { if (m && map) map.removeLayer(m); });
+  guessMark = truthMark = link = null;
+}
+
+/* ---------- rounds ---------- */
+function firstUnplayed() {
+  for (let i = 0; i < DATA.rounds; i++) if (!state.done.has(i)) return i;
+  return -1;
+}
+
+function showRound(i) {
+  state.round = i;
+  state.phase = 'guess';
+  state.pin = null;
+  clearMarks();
+  if (map) map.fitBounds(WORLD);
+
+  $('#shot').src = `/img/${i}`;
+  $('#lat').value = ''; $('#lng').value = '';
+  $('#country').value = ''; $('#why').value = '';
+  $('#err').textContent = '';
+  $('#guessCard').hidden = false;
+  $('#resultCard').hidden = true;
+  $('#fieldCard').hidden = true;
+  $('#final').hidden = true;
+  $('#panes').hidden = false;
+  checkReady();
+  paintBar();
+  state.started = performance.now();
+  $('#why').focus();
+}
+
+function checkReady() {
+  const ok = state.pin && $('#country').value.trim() && $('#why').value.trim();
+  $('#submit').disabled = !ok;
+  return ok;
+}
+
+async function submit() {
+  if (!checkReady() || state.phase !== 'guess') return;
+  $('#submit').disabled = true;
+  $('#err').textContent = '';
+  const body = {
+    round: state.round,
+    lat: state.pin.lat,
+    lng: state.pin.lng,
+    country: $('#country').value.trim(),
+    reasoning: $('#why').value.trim(),
+    seconds: (performance.now() - state.started) / 1000,
+  };
+  try {
+    const res = await fetch('/api/guess', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    showReveal(data);
+  } catch (e) {
+    $('#err').textContent = String(e.message || e);
+    $('#submit').disabled = false;
+  }
+}
+
+function showReveal(r) {
+  state.phase = 'reveal';
+  state.done.add(r.index);
+  state.points += r.you.score;
+  state.played += 1;
+
+  if (map) {
+    truthMark = L.marker([r.truth.lat, r.truth.lng], { icon: dot('#111', 12) })
+      .addTo(map).bindTooltip(r.truth.country, { permanent: false });
+    link = L.polyline([[r.you.lat, r.you.lng], [r.truth.lat, r.truth.lng]],
+      { color: '#111', weight: 1, dashArray: '3 4' }).addTo(map);
+    if (guessMark) guessMark.dragging.disable();
+    map.fitBounds(L.latLngBounds([[r.you.lat, r.you.lng], [r.truth.lat, r.truth.lng]]).pad(.35));
+  }
+
+  $('#guessCard').hidden = true;
+  const card = $('#resultCard');
+  card.hidden = false;
+  $('#resultTitle').textContent = `Round ${r.index + 1} — ${r.truth.country}`;
+  $('#resultSub').textContent = `location #${r.truth.id}`;
+  $('#verdict').innerHTML =
+    `You said <b>${escapeHtml(r.you.country)}</b> — ` +
+    (r.you.countryOk ? '<span class="ok">right country</span>' : '<span class="bad">wrong country</span>') +
+    `. That pin beat <b>${r.beaten}</b> of ${r.field} model runs on this image.`;
+
+  const stats = $('#resultStats');
+  stats.innerHTML = '';
+  stats.append(
+    stat('Error', `${km(r.you.km)} km`),
+    stat('Score', `${r.you.score.toLocaleString()}`),
+    stat('Truth', `${r.truth.lat.toFixed(4)}, ${r.truth.lng.toFixed(4)}`, true),
+    stat('Time', mmss(r.you.seconds), true),
+  );
+
+  $('#next').textContent = firstUnplayed() === -1 ? 'See how you did →' : 'Next round →';
+  paintField(r);
+  paintBar();
+  // Deliberately not focusing #next: enter would then both activate the button
+  // and hit the key handler, skipping a round.
+}
+
+function stat(label, value, small) {
+  const w = el('div', 'stat');
+  w.append(el('span', 'label', label));
+  w.append(el('span', 'v' + (small ? ' small' : ''), value));
+  return w;
+}
+
+function paintField(r) {
+  const rows = $('#fieldRows');
+  rows.innerHTML = '';
+  const mine = {
+    name: DATA.name, provider: 'you', you: true,
+    country: r.you.country, countryOk: r.you.countryOk,
+    km: r.you.km, score: r.you.score, text: r.you.reasoning,
+  };
+  const all = r.models.concat([mine])
+    .sort((a, b) => (b.score - a.score) || ((a.km ?? 1e9) - (b.km ?? 1e9)));
+
+  all.forEach((m, i) => {
+    const tr = el('tr', m.you ? 'you' : 'model');
+    tr.append(el('td', 'num', String(i + 1)));
+
+    const who = el('td');
+    who.append(el('span', null, m.name));
+    if (!m.you) { who.append(' '); who.append(el('span', 'tag', m.provider)); }
+    tr.append(who);
+
+    const said = el('td');
+    if (m.refused) said.append(el('span', 'bad', m.error ? 'no answer — ' + m.error.slice(0, 60) : 'no answer'));
+    else {
+      said.append(el('span', m.countryOk ? 'ok' : 'bad', m.country || '—'));
+      said.append(el('span', 'dim mono', `  ${(m.lat ?? 0).toFixed(2)}, ${(m.lng ?? 0).toFixed(2)}`));
+    }
+    tr.append(said);
+
+    tr.append(el('td', 'num', m.km == null ? '—' : km(m.km) + ' km'));
+
+    const barCell = el('td', 'bar-cell');
+    const bar = el('div', 'scorebar');
+    const fill = el('i');
+    fill.style.width = `${Math.max(1, (m.score / 5000) * 100)}%`;
+    bar.append(fill); barCell.append(bar);
+    tr.append(barCell);
+    tr.append(el('td', 'num', (m.score || 0).toLocaleString()));
+
+    rows.append(tr);
+
+    if (m.text) {
+      const why = el('tr');
+      const cell = el('td');
+      cell.colSpan = 6;
+      cell.className = 'why';
+      cell.textContent = m.text;
+      why.append(cell);
+      why.hidden = true;
+      rows.append(why);
+      tr.addEventListener('click', () => { why.hidden = !why.hidden; });
+    }
+  });
+
+  $('#fieldSub').textContent = `${r.models.length} model runs · click a row for its reasoning`;
+  $('#fieldCard').hidden = false;
+}
+
+/* ---------- finish ---------- */
+async function finish() {
+  const res = await fetch('/api/standings');
+  const s = await res.json();
+  state.phase = 'final';
+  $('#panes').hidden = true;
+  $('#fieldCard').hidden = true;
+  $('#final').hidden = false;
+
+  const you = s.table.find(r => r.you) || {};
+  $('#finalSub').textContent =
+    `${s.played} rounds on ${DATA.dataset}` + (s.seed != null ? ` · seed ${s.seed}` : '');
+  const fs = $('#finalStats');
+  fs.innerHTML = '';
+  fs.append(
+    stat('Points', (you.points || 0).toLocaleString()),
+    stat('Average score', (you.avgScore || 0).toLocaleString()),
+    stat('Average error', `${km(you.avgKm)} km`),
+    stat('Median error', `${km(you.medianKm)} km`),
+    stat('Countries', `${you.countries || 0}/${you.n || 0}`),
+    stat('Rank', `${you.rank || 1} of ${s.table.length}`),
+  );
+
+  const rr = $('#roundRows');
+  rr.innerHTML = '';
+  s.rounds.forEach(r => {
+    const tr = el('tr');
+    tr.append(el('td', 'num', String(r.index + 1)));
+    const loc = el('td');
+    loc.append(el('span', r.countryOk ? 'ok' : 'bad', r.country));
+    loc.append(el('span', 'dim mono', `  #${r.id}`));
+    tr.append(loc);
+    tr.append(el('td', 'num', km(r.km) + ' km'));
+    tr.append(el('td', 'num', (r.score || 0).toLocaleString()));
+    tr.append(el('td', 'num', mmss(r.seconds)));
+    const best = el('td');
+    if (r.bestName) {
+      best.append(el('span', null, r.bestName));
+      best.append(el('span', 'dim mono', `  ${(r.bestScore || 0).toLocaleString()} pts · ${km(r.bestKm)} km`));
+    } else best.append(el('span', 'dim', '—'));
+    tr.append(best);
+    rr.append(tr);
+  });
+
+  const sr = $('#standingRows');
+  sr.innerHTML = '';
+  s.table.forEach(row => {
+    const tr = el('tr', row.you ? 'you' : null);
+    tr.append(el('td', 'num', String(row.rank)));
+    const who = el('td');
+    who.append(el('span', null, row.name));
+    who.append(' ');
+    who.append(el('span', 'tag', row.provider));
+    tr.append(who);
+    tr.append(el('td', 'num', row.points.toLocaleString()));
+    tr.append(el('td', 'num', km(row.avgKm)));
+    tr.append(el('td', 'num', km(row.medianKm)));
+    tr.append(el('td', 'num', `${row.countries}/${row.n}`));
+    sr.append(tr);
+  });
+
+  $('#standingsSub').textContent =
+    `${s.ranked} model runs played all ${s.played} of these locations`;
+  $('#runDir').textContent = s.runDir;
+  $('#dsName').textContent = DATA.dataset;
+  paintBar();
+  window.scrollTo(0, 0);
+}
+
+function next() {
+  const i = firstUnplayed();
+  if (i === -1) finish(); else showRound(i);
+}
+
+/* ---------- chrome ---------- */
+function paintBar() {
+  $('#whoami').textContent = `${DATA.name} · ${DATA.dataset}`;
+  $('#roundNo').textContent = state.phase === 'final'
+    ? 'done'
+    : `round ${state.round + 1}/${DATA.rounds}`;
+  const pips = $('#pips');
+  pips.innerHTML = '';
+  for (let i = 0; i < DATA.rounds; i++) {
+    pips.append(el('span', 'pip' + (state.done.has(i) ? ' done' : '') +
+      (i === state.round && state.phase !== 'final' ? ' now' : '')));
+  }
+  $('#tally').innerHTML = state.played
+    ? `<b>${state.points.toLocaleString()}</b> pts <span class="dim">/ ${state.played * 5000} possible</span>`
+    : `<span class="dim">${DATA.models} model runs to beat</span>`;
+}
+
+function tick() {
+  if (state.phase === 'guess' && state.started) {
+    $('#clock').textContent = mmss((performance.now() - state.started) / 1000);
+  }
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+}
+
+/* ---------- image lightbox ---------- */
+const box = $('#box'), boxImg = $('#boxImg');
+let zoom = 1, ox = 0, oy = 0, dragging = null;
+
+function openBox() {
+  boxImg.src = $('#shot').src;
+  box.classList.add('on');
+  const w = $('#shot').naturalWidth || window.innerWidth;
+  const h = $('#shot').naturalHeight || window.innerHeight;
+  zoom = Math.max(1, window.innerWidth / w);
+  ox = Math.min(0, (window.innerWidth - w * zoom) / 2);
+  oy = Math.min(0, (window.innerHeight - h * zoom) / 2);
+  paintBox();
+}
+function closeBox() { box.classList.remove('on'); }
+function paintBox() { boxImg.style.transform = `translate(${ox}px, ${oy}px) scale(${zoom})`; }
+
+box.addEventListener('wheel', e => {
+  e.preventDefault();
+  const f = e.deltaY < 0 ? 1.15 : 1 / 1.15;
+  const nz = Math.min(12, Math.max(.2, zoom * f));
+  // keep the point under the cursor fixed
+  ox = e.clientX - (e.clientX - ox) * (nz / zoom);
+  oy = e.clientY - (e.clientY - oy) * (nz / zoom);
+  zoom = nz;
+  paintBox();
+}, { passive: false });
+box.addEventListener('mousedown', e => {
+  dragging = { x: e.clientX - ox, y: e.clientY - oy, from: [e.clientX, e.clientY] };
+  box.style.cursor = 'grabbing';
+});
+window.addEventListener('mousemove', e => {
+  if (!dragging) return;
+  ox = e.clientX - dragging.x; oy = e.clientY - dragging.y; paintBox();
+});
+window.addEventListener('mouseup', e => {
+  if (!dragging) return;
+  const moved = Math.hypot(e.clientX - dragging.from[0], e.clientY - dragging.from[1]);
+  dragging = null;
+  box.style.cursor = 'grab';
+  if (moved < 4) closeBox();   // a click, not a drag
+});
+
+/* ---------- wiring ---------- */
+$('#shot').addEventListener('click', openBox);
+$('#submit').addEventListener('click', submit);
+$('#next').addEventListener('click', next);
+$('#recentre').addEventListener('click', () => { if (map) map.fitBounds(WORLD); });
+['#country', '#why'].forEach(s => $(s).addEventListener('input', checkReady));
+['#lat', '#lng'].forEach(s => $(s).addEventListener('input', readCoordInputs));
+
+window.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { closeBox(); return; }
+  const typing = /^(INPUT|TEXTAREA)$/.test(document.activeElement.tagName);
+  if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') { e.preventDefault(); submit(); return; }
+  if (typing) return;
+  if (e.key === 'f') { e.preventDefault(); box.classList.contains('on') ? closeBox() : openBox(); }
+  if ((e.key === 'Enter' || e.key === 'ArrowRight') && state.phase === 'reveal') next();
+});
+
+const dl = $('#countries');
+(DATA.countries || []).forEach(c => {
+  const o = document.createElement('option');
+  o.value = c;
+  dl.append(o);
+});
+
+// A resumed session starts with rounds already behind it; get their points back
+// into the header tally. Purely cosmetic, so a failure here is ignored.
+async function resumeTally() {
+  if (!state.done.size) return;
+  try {
+    const s = await (await fetch('/api/standings')).json();
+    const you = (s.table || []).find(r => r.you);
+    if (you) { state.points = you.points; state.played = you.n; paintBar(); }
+  } catch (e) { /* never mind */ }
+}
+
+initMap();
+setInterval(tick, 500);
+paintBar();
+resumeTally();
+if (firstUnplayed() === -1) finish(); else next();
+</script>
+</body>
+</html>

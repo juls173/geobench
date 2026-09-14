@@ -26,6 +26,16 @@ python geobench.py --dataset <test name> --model <model name>
 
 Models go by their class name in `models.py`. Claude 3.5 Haiku goes by `Claude3_5Haiku`, for instance.
 
+## Test yourself
+```
+python human/quiz.py --dataset <test name> --num 10
+```
+
+Ten of the dataset's locations in the browser: drop a pin, write your reasoning,
+and see the answer together with what every model said about the same image. It
+saves the same run format the models do, so you land in the comparisons beside
+them. See [`human/README.md`](human/README.md).
+
 ## Compare guesses
 Running the `browser/main.py` script and opening `visualization.html` can show you all guesses for a location made by the models.
 
