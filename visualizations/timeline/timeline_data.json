@@ -1321,6 +1321,27 @@
      ]
     },
     {
+     "model": "Gemini 3.8 Flash",
+     "org": "Google",
+     "date": "2026-09-02",
+     "date_source": "Epoch AI",
+     "epoch_group": "Gemini 3.8 Flash",
+     "variants": [
+      {
+       "variant": "default",
+       "score": 4198.8,
+       "country": 0.86,
+       "median_score": 4713,
+       "median_distance_km": 121.6,
+       "refusal": 0.0,
+       "n": 100,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "local run"
+      }
+     ]
+    },
+    {
      "model": "GPT-6 Astra",
      "org": "OpenAI",
      "date": "2026-09-03",
@@ -2256,6 +2277,27 @@
        "country": 0.48,
        "median_score": 3784,
        "median_distance_km": 436.5,
+       "refusal": 0.0,
+       "n": 50,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "local run"
+      }
+     ]
+    },
+    {
+     "model": "Gemini 3.8 Flash",
+     "org": "Google",
+     "date": "2026-09-02",
+     "date_source": "Epoch AI",
+     "epoch_group": "Gemini 3.8 Flash",
+     "variants": [
+      {
+       "variant": "default",
+       "score": 4265.5,
+       "country": 0.78,
+       "median_score": 4741,
+       "median_distance_km": 81.4,
        "refusal": 0.0,
        "n": 50,
        "tools": false,

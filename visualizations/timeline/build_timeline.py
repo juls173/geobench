@@ -125,6 +125,7 @@ _m("Gemini 3.0 Flash Preview", "Gemini 3 Flash", "Gemini 3 Flash")
 _m("Gemini 3.1 Pro Preview", "Gemini 3.1 Pro", "Gemini 3.1 Pro")
 _m("Gemini 3.1 Flash Lite Preview", "Gemini 3.1 Flash-Lite", "Gemini 3.1 Flash-Lite")
 _m("Gemini 3.5 Flash", "Gemini 3.5 Flash", "Gemini 3.5 Flash")
+_m("Gemini 3.8 Flash", "Gemini 3.8 Flash", "Gemini 3.8 Flash")
 _m("Gemma 3 27b", "Gemma 3 27B", "Gemma 3 27B")
 _m("Gemma 3 27B", "Gemma 3 27B", "Gemma 3 27B")
 
