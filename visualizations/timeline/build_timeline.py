@@ -79,7 +79,7 @@ _m("Claude 4.6 Opus (Thinking)", "Claude Opus 4.6", "Claude Opus 4.6", "Thinking
 _m("Claude 4.8 Opus (Thinking)", "Claude Opus 4.8", "Claude Opus 4.8", "Thinking")
 _m("Claude Sonnet 5", "Claude Sonnet 5", "Claude Sonnet 5")
 _m("Claude Fable 5", "Claude Fable 5", "Claude Fable 5")
-for eff in ("Low", "Medium", "High"):
+for eff in ("Low", "Medium", "High", "XHigh"):
     _m(f"Claude Opus 5 ({eff})", "Claude Opus 5", "Claude Opus 5", eff)
     _m(f"Claude Fable 5.1 ({eff})", "Claude Fable 5.1", "Claude Fable 5.1", eff)
 
@@ -360,8 +360,17 @@ def main() -> None:
             "epoch_group": epoch_group,
             "variants": [],
         })
+        # A non-standard prompt_mode is extra help, like search -- label it so it
+        # cannot be mistaken for another run of the same setup, and let the page
+        # filter it out.
+        mode = (row.get("prompt_mode") or "standard").strip()
+        tuned = mode not in ("", "standard")
+        label = variant or "default"
+        if tuned:
+            label = f"{variant} · {mode} prompt" if variant else f"{mode} prompt"
+
         bucket["variants"].append({
-            "variant": variant or "default",
+            "variant": label,
             "score": round(float(row["average_score"]), 1),
             "country": round(float(row["country_success_rate"]), 4),
             "median_score": row.get("median_score"),
@@ -370,6 +379,7 @@ def main() -> None:
             "refusal": round(float(row.get("refusal_rate", 0)), 4),
             "n": int(row.get("n", 0)),
             "tools": variant == "Search",
+            "prompt_tuned": tuned,
             "source": source,
         })
 

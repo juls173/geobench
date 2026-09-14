@@ -225,6 +225,32 @@
     width: 16px; height: 0; border-radius: 0;
     border-top: 2px solid var(--frontier);
   }
+  .lg.trendkey i {
+    width: 16px; height: 0; border-radius: 0;
+    border-top: 2.5px solid var(--ink-3);
+  }
+
+  /* per-lab rate of improvement, read off the fitted curve */
+  .rates { display: flex; flex-wrap: wrap; gap: 8px; padding: 10px 20px 2px; }
+  .rate-card {
+    flex: 1 1 190px; min-width: 0;
+    display: flex; align-items: baseline; gap: 9px;
+    padding: 8px 11px;
+    background: var(--panel-sunk);
+    border-radius: 7px;
+    border-left: 3px solid var(--bar, var(--other));
+  }
+  .rate-card .lab { font-size: 12.5px; font-weight: 600; white-space: nowrap; }
+  .rate-card .val {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums;
+    margin-left: auto; white-space: nowrap;
+  }
+  .rate-card .fitq {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 10.5px; color: var(--ink-3); white-space: nowrap;
+  }
+  .rates-note { padding: 2px 20px 0; font-size: 12px; color: var(--ink-3); margin: 0; }
 
   .plot-host { position: relative; padding: 2px 8px 10px; }
   svg.plot { display: block; width: 100%; height: auto; overflow: visible; }
@@ -241,6 +267,10 @@
   .dot-sm { stroke: var(--panel); stroke-width: 1.5; opacity: .5; }
   .spread { stroke-width: 1.5; opacity: .32; stroke-linecap: round; }
   .frontier-path { fill: none; stroke: var(--frontier); stroke-width: 2; stroke-linejoin: round; opacity: .5; }
+  .trend-path {
+    fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round;
+    opacity: .8; pointer-events: none;
+  }
   .dlabel {
     font-family: "IBM Plex Sans", system-ui, sans-serif !important;
     font-size: 11.5px; font-weight: 600; fill: var(--ink);
@@ -408,6 +438,16 @@
       <div class="segmented" role="group" aria-labelledby="lbl-metric" id="seg-metric">
         <button type="button" data-metric="score" aria-pressed="true">GeoGuessr score</button>
         <button type="button" data-metric="country" aria-pressed="false">Country accuracy</button>
+        <button type="button" data-metric="miss" aria-pressed="false">Median miss</button>
+      </div>
+    </div>
+
+    <div class="ctl-group">
+      <span class="ctl-label" id="lbl-trend">Trend per lab</span>
+      <div class="segmented" role="group" aria-labelledby="lbl-trend" id="seg-trend">
+        <button type="button" data-trend="logit" aria-pressed="true">Saturating</button>
+        <button type="button" data-trend="linear" aria-pressed="false">Linear</button>
+        <button type="button" data-trend="off" aria-pressed="false">Off</button>
       </div>
     </div>
 
@@ -426,6 +466,10 @@
         <input type="checkbox" id="opt-tools" checked>
         Runs with web search
       </label>
+      <label class="check" for="opt-tuned">
+        <input type="checkbox" id="opt-tuned" checked>
+        Runs with a tuned prompt
+      </label>
     </div>
   </div>
 
@@ -435,6 +479,7 @@
       <p class="fig-sub" id="fig-sub"></p>
     </div>
     <div class="legend" id="legend"></div>
+    <div class="rates" id="rates"></div>
     <div class="plot-host" id="plot-host">
       <svg class="plot" id="plot" role="img" aria-labelledby="fig-title"></svg>
       <div class="tip" id="tip" aria-hidden="true"></div>
@@ -474,6 +519,9 @@
         <strong>One point per released model, at its best setting.</strong> Where a model was run at several
         reasoning efforts, the point is the highest of them on whichever axis is showing &mdash; so the two
         axes can pick different runs. Tick <em>Every reasoning-effort run</em> to see the full spread.
+        Runs that got help the leaderboard&rsquo;s default setup doesn&rsquo;t &mdash; web search, or a
+        prompt tuned for geolocation &mdash; are labelled in the tooltip and can be switched off, since
+        including them compares a tuned setup against everyone else&rsquo;s standard one.
       </li>
       <li>
         <strong>Release dates are Epoch&rsquo;s, not GeoBench&rsquo;s.</strong> They come from
@@ -485,6 +533,31 @@
         <strong>Refusals score zero.</strong> A response GeoBench can&rsquo;t parse into
         <code>country / lat / lng</code> counts as a miss and as country-incorrect, which is why a few
         models sit below where their geolocation ability alone would put them.
+      </li>
+      <li>
+        <strong>Why the trend isn&rsquo;t a straight line.</strong> Score and country accuracy are
+        bounded, so a straight line eventually predicts the impossible &mdash; fitted linearly, Anthropic&rsquo;s
+        ACW score reaches a flawless 5,000 by <em>August 2027</em>. <strong>Saturating</strong> instead fits a
+        line in logit space and bends it back, which is the shape Epoch&rsquo;s own ECI model assumes
+        (<code>performance = sigmoid(discriminability &times; (capability &minus; difficulty))</code>). On this
+        data the two fit about equally well &mdash; R&sup2; differs by ~0.03 &mdash; because no lab has yet spent long
+        enough near the ceiling to reveal the bend. They disagree about the future, not the past.
+        Switch between them and watch the right-hand end.
+      </li>
+      <li>
+        <strong>Saturation is partly the scoring formula&rsquo;s doing.</strong> Score decays exponentially
+        in distance, so equal gains in accuracy buy ever-smaller gains in points. <em>Median miss</em> is
+        the same runs read as kilometres instead, and it is still falling by a roughly constant factor
+        each year &mdash; on ACW the field&rsquo;s median error more than halves every two years, and
+        Anthropic&rsquo;s halves in under one. A benchmark that looks close to saturated on points is
+        not yet close to saturated on the thing it measures.
+      </li>
+      <li>
+        <strong>The trends include each lab&rsquo;s whole line-up.</strong> Small and cheap models
+        (Haiku, Flash-Lite, GPT-4o mini, o4-mini) sit in the same fit as flagships, so a lab that shipped
+        several small models in a row trends flat. Each card reports <code>n</code> and R&sup2; for exactly
+        this reason: OpenAI&rsquo;s ACW score trend has R&sup2; &asymp; 0.00, which means no trend, not a flat one.
+        Curves are drawn only across the dates each lab has actually shipped in &mdash; nothing is extrapolated.
       </li>
     </ul>
   </section>
@@ -509,30 +582,57 @@ const LEGEND = [
   ["Other labs", OTHER],
 ];
 
+const fmtKmShort = (k) =>
+  k >= 1000 ? (k / 1000).toFixed(1).replace(/\.0$/, "") + "k" : String(Math.round(k));
+
 const METRICS = {
   score: {
     key: "score",
     label: "GeoGuessr score",
     axis: "Avg score / 5,000",
+    better: "high",
+    scale: "linear",
+    fit: "logit",          // bounded [0, 5000] -> fit in logit space
+    ceiling: 5000,
     domain: [2000, 5000],
     ticks: [2000, 2500, 3000, 3500, 4000, 4500, 5000],
     fmt: (v) => Math.round(v).toLocaleString(),
     fmtLong: (v) => Math.round(v).toLocaleString(),
     unit: "of 5,000",
-    ceiling: 5000,
     ceilingText: "5,000 — pin on the exact spot",
+    rate: (v) => `${v >= 0 ? "+" : "−"}${Math.abs(v) < 10 ? Math.abs(v).toFixed(1) : Math.round(Math.abs(v))} pts/yr`,
   },
   country: {
     key: "country",
     label: "Country accuracy",
     axis: "Correct country",
+    better: "high",
+    scale: "linear",
+    fit: "logit",          // bounded [0, 1] -> fit in logit space
+    ceiling: 1,
     domain: [0.2, 1],
     ticks: [0.2, 0.4, 0.6, 0.8, 1.0],
     fmt: (v) => Math.round(v * 100) + "%",
     fmtLong: (v) => (v * 100).toFixed(0) + "%",
     unit: "of locations",
-    ceiling: 1,
     ceilingText: "100% — right country every time",
+    rate: (v) => `${v >= 0 ? "+" : "−"}${Math.abs(v * 100).toFixed(1)} pp/yr`,
+  },
+  miss: {
+    key: "median_distance_km",
+    label: "Median miss",
+    axis: "Median miss — km, log",
+    better: "low",         // smaller error is better
+    scale: "log",
+    fit: "log",            // unbounded below, improves multiplicatively
+    ceiling: null,
+    domain: [50, 1600],
+    ticks: [50, 100, 200, 400, 800, 1600],
+    fmt: (v) => fmtKmShort(v),
+    fmtLong: (v) => fmtKm(v),
+    unit: "median error",
+    ceilingText: null,
+    rate: (mult) => `×${mult.toFixed(2)}/yr`,
   },
 };
 
@@ -541,9 +641,13 @@ const state = {
   dataset: Object.keys(DATA.datasets)[0],
   variants: false,
   tools: true,
+  tuned: true,
+  trend: "logit",          // "logit" (metric-appropriate), "linear", or "off"
   sort: { col: "value", dir: -1 },
   active: null,
 };
+
+const TREND_LABS = ["OpenAI", "Google", "Anthropic"];
 
 const $ = (id) => document.getElementById(id);
 const DAY = 86400000;
@@ -559,19 +663,25 @@ const fmtDate = (iso) => {
 
 /* ---------- data shaping ---------- */
 
+// Search and a tuned prompt are both help the leaderboard's default setup
+// doesn't get, so each can be filtered out of the comparison.
 function runsOf(model) {
-  return state.tools ? model.variants : model.variants.filter((v) => !v.tools);
+  return model.variants.filter(
+    (v) => (state.tools || !v.tools) && (state.tuned || !v.prompt_tuned));
 }
+
+// "Better" is higher for score and country, lower for miss distance.
+const beats = (a, b) => (METRICS[state.metric].better === "low" ? a < b : a > b);
 
 // One row per model: its best run on the active metric, plus the spread.
 function rows() {
-  const key = state.metric;
+  const key = METRICS[state.metric].key;
   const out = [];
   for (const m of DATA.datasets[state.dataset].models) {
-    const runs = runsOf(m);
+    const runs = runsOf(m).filter((r) => r[key] != null);
     if (!runs.length) continue;
     let best = runs[0];
-    for (const r of runs) if (r[key] > best[key]) best = r;
+    for (const r of runs) if (beats(r[key], best[key])) best = r;
     const vals = runs.map((r) => r[key]);
     out.push({
       model: m,
@@ -590,9 +700,102 @@ function rows() {
 // Best-so-far: each model that beat everything released before it.
 function frontier(rs) {
   const out = [];
-  let best = -Infinity;
+  let best = null;
   for (const r of rs) {
-    if (r.value > best) { out.push(r); best = r.value; }
+    if (best === null || beats(r.value, best)) { out.push(r); best = r.value; }
+  }
+  return out;
+}
+
+/* ---------- trend fits ----------
+   Epoch's own ECI model assumes benchmark performance is a sigmoid, so a
+   bounded metric is fitted in logit space and a multiplicative one in log
+   space; the curve is drawn back in the metric's own units. A straight line
+   is offered only for comparison -- on a bounded metric it runs off the top.  */
+
+const clamp01 = (p) => Math.min(Math.max(p, 1e-4), 1 - 1e-4);
+
+function transformer(met, mode) {
+  if (mode === "linear") {
+    return { fwd: (v) => v, inv: (z) => z };
+  }
+  if (met.fit === "log") {
+    return { fwd: (v) => Math.log(v), inv: (z) => Math.exp(z) };
+  }
+  const c = met.ceiling;
+  return {
+    fwd: (v) => { const p = clamp01(v / c); return Math.log(p / (1 - p)); },
+    inv: (z) => c / (1 + Math.exp(-z)),
+  };
+}
+
+const YEAR_MS = 365.2425 * 86400000;
+
+// Ordinary least squares in the transformed space; R² reported in the
+// metric's own units so the two fit shapes are directly comparable.
+function fitTrend(pts, met, mode) {
+  if (pts.length < 3) return null;
+  const { fwd, inv } = transformer(met, mode);
+  const xs = pts.map((p) => p.t / YEAR_MS);
+  const zs = pts.map((p) => fwd(p.value));
+  if (zs.some((z) => !isFinite(z))) return null;
+
+  const n = xs.length;
+  const mx = xs.reduce((a, b) => a + b, 0) / n;
+  const mz = zs.reduce((a, b) => a + b, 0) / n;
+  let sxx = 0, sxz = 0;
+  for (let i = 0; i < n; i++) { sxx += (xs[i] - mx) ** 2; sxz += (xs[i] - mx) * (zs[i] - mz); }
+  if (sxx === 0) return null;
+  const b = sxz / sxx, a = mz - b * mx;
+
+  const ys = pts.map((p) => p.value);
+  const my = ys.reduce((s, v) => s + v, 0) / n;
+  let sst = 0, sse = 0;
+  for (let i = 0; i < n; i++) {
+    const pred = inv(a + b * xs[i]);
+    sst += (ys[i] - my) ** 2;
+    sse += (ys[i] - pred) ** 2;
+  }
+
+  // Rate of improvement, read at the most recent model in this series --
+  // a logistic has no single slope, so quote the pace it is moving at now.
+  const xLast = xs[xs.length - 1];
+  let rate, rateText;
+  if (mode === "linear") {
+    rate = b;                                 // metric units per year
+    rateText = met.fit === "log"
+      ? `${b >= 0 ? "+" : "−"}${Math.abs(Math.round(b))} km/yr`
+      : met.rate(b);
+  } else if (met.fit === "log") {
+    rate = Math.exp(b);                       // multiplier per year
+    rateText = met.rate(rate);
+  } else {
+    const p = 1 / (1 + Math.exp(-(a + b * xLast)));
+    rate = met.ceiling * b * p * (1 - p);     // local slope of the logistic, today
+    rateText = met.rate(rate);
+  }
+
+  const halving = met.fit === "log" && mode !== "linear" && b < 0
+    ? Math.log(0.5) / b : null;
+
+  return {
+    a, b, inv, n,
+    r2: sst > 0 ? 1 - sse / sst : NaN,
+    t0: Math.min(...xs) * YEAR_MS,
+    t1: Math.max(...xs) * YEAR_MS,
+    rate, rateText, halving,
+    at: (t) => inv(a + b * (t / YEAR_MS)),
+  };
+}
+
+function labTrends(rs) {
+  if (state.trend === "off") return [];
+  const met = METRICS[state.metric];
+  const out = [];
+  for (const lab of TREND_LABS) {
+    const pts = rs.filter((r) => r.model.org === lab);
+    const f = fitTrend(pts, met, state.trend === "linear" ? "linear" : "fit");
+    if (f) out.push({ lab, fit: f, color: colorFor(lab) });
   }
   return out;
 }
@@ -640,7 +843,9 @@ function draw() {
   const t1 = Math.max(...rs.map((r) => r.t)) + 18 * DAY;
   const x = (t) => M.left + ((t - t0) / (t1 - t0)) * iw;
   const [d0, d1] = met.domain;
-  const y = (v) => M.top + ih - ((v - d0) / (d1 - d0)) * ih;
+  const sy = met.scale === "log" ? Math.log : (v) => v;
+  const z0 = sy(d0), z1 = sy(d1);
+  const y = (v) => M.top + ih - ((sy(Math.max(v, 1e-9)) - z0) / (z1 - z0)) * ih;
 
   layout = { x, y, M, iw, ih, W, H, rs, narrow };
 
@@ -657,15 +862,16 @@ function draw() {
   }
 
   /* the ceiling deserves a call-out: it is the thing nobody has reached */
-  const yc = y(met.ceiling);
-  g.appendChild(el("line", {
-    class: "ceiling", x1: M.left, x2: M.left + iw, y1: yc, y2: yc,
-    "stroke-dasharray": "0",
-  }));
-  if (!veryNarrow) {
-    g.appendChild(el("text", {
-      class: "ceiling-label", x: M.left + iw, y: yc - 7, "text-anchor": "end",
-    }, met.ceilingText));
+  if (met.ceiling != null) {
+    const yc = y(met.ceiling);
+    g.appendChild(el("line", {
+      class: "ceiling", x1: M.left, x2: M.left + iw, y1: yc, y2: yc,
+    }));
+    if (!veryNarrow) {
+      g.appendChild(el("text", {
+        class: "ceiling-label", x: M.left + iw, y: yc - 7, "text-anchor": "end",
+      }, met.ceilingText));
+    }
   }
 
   /* x axis: quarter ticks */
@@ -714,6 +920,35 @@ function draw() {
   }
   const frSet = new Set(fr.map((r) => r.model.model));
 
+  /* per-lab trend curves, sampled across each lab's own date span only --
+     no extrapolation past the last model that lab has actually shipped */
+  const trends = labTrends(rs);
+  if (trends.length) {
+    // a straight line on a bounded metric leaves the top of the plot; clip so it
+    // is seen running off the scale instead of drawing over the page
+    const clipId = "plotclip";
+    const defs = el("defs");
+    const cp = el("clipPath", { id: clipId });
+    cp.appendChild(el("rect", { x: M.left, y: M.top - 2, width: iw, height: ih + 4 }));
+    defs.appendChild(cp);
+    g.appendChild(defs);
+
+    const tg = el("g", { "clip-path": `url(#${clipId})` });
+    for (const tr of trends) {
+      const f = tr.fit;
+      const steps = 64;
+      let d = "";
+      for (let i = 0; i <= steps; i++) {
+        const t = f.t0 + ((f.t1 - f.t0) * i) / steps;
+        const v = f.at(t);
+        if (!isFinite(v)) continue;
+        d += (d ? " L " : "M ") + x(t).toFixed(1) + " " + y(v).toFixed(1);
+      }
+      if (d) tg.appendChild(el("path", { class: "trend-path", d, style: `stroke:${tr.color}` }));
+    }
+    g.appendChild(tg);
+  }
+
   /* effort spread */
   if (state.variants) {
     for (const r of rs) {
@@ -725,7 +960,7 @@ function draw() {
       for (const run of r.runs) {
         if (run === r.best) continue;
         g.appendChild(el("circle", {
-          class: "dot-sm", cx: x(r.t), cy: y(run[state.metric]), r: 3,
+          class: "dot-sm", cx: x(r.t), cy: y(run[met.key]), r: 3,
           style: `fill:${colorFor(r.model.org)}`,
         }));
       }
@@ -886,6 +1121,42 @@ const fmtKm = (k) => (k >= 1000 ? Math.round(k).toLocaleString() : k >= 100 ? Ma
 
 /* ---------- record relay ---------- */
 
+function renderRates() {
+  const host = $("rates");
+  host.innerHTML = "";
+  if (state.trend === "off") return;
+
+  const met = METRICS[state.metric];
+  const trends = labTrends(rows());
+  for (const tr of trends) {
+    const f = tr.fit;
+    const card = document.createElement("div");
+    card.className = "rate-card";
+    card.style.setProperty("--bar", tr.color);
+    const half = f.halving
+      ? ` · halves every ${f.halving < 1 ? Math.round(f.halving * 12) + " mo" : f.halving.toFixed(1) + " yr"}`
+      : "";
+    card.innerHTML =
+      `<span class="lab">${esc(tr.lab)}</span>` +
+      `<span class="fitq">n=${f.n} · R²&nbsp;${isFinite(f.r2) ? f.r2.toFixed(2) : "—"}</span>` +
+      `<span class="val">${esc(f.rateText)}</span>`;
+    card.title = `${tr.lab}: ${f.rateText}${half} (${state.trend === "linear"
+      ? "straight-line fit" : "fitted in " + (met.fit === "log" ? "log" : "logit") + " space"}, n=${f.n})`;
+    host.appendChild(card);
+  }
+
+  const note = document.createElement("p");
+  note.className = "rates-note";
+  const shape = state.trend === "linear"
+    ? "Straight-line fit."
+    : met.fit === "log"
+      ? "Fitted in log space — a constant factor per year."
+      : "Fitted in logit space, the shape Epoch's ECI model assumes; the quoted pace is the curve's slope today.";
+  note.textContent = shape +
+    " Every model each lab has on this image set is included, small models as well as flagships — R² says how much of the spread the trend actually explains.";
+  host.appendChild(note);
+}
+
 function renderRelay() {
   const met = METRICS[state.metric];
   const rs = rows();
@@ -908,7 +1179,7 @@ function renderRelay() {
       <span class="what">${met.fmtLong(r.value)}</span>
       <span class="gain">${gain == null
         ? "first on the board"
-        : `+${met.key === "score" ? Math.round(gain).toLocaleString() : Math.round(gain * 100) + " pts"} · held ${held}`}</span>`;
+        : `${gainText(met, gain)} · held ${held}`}</span>`;
     host.appendChild(card);
   });
 
@@ -918,6 +1189,13 @@ function renderRelay() {
   $("fig-sub").textContent =
     `${rs.length} models · ${rs.reduce((a, r) => a + r.runs.length, 0)} runs · ` +
     `leader ${last.model.model} at ${met.fmtLong(last.value)}`;
+}
+
+// The step a new record holder took, in that metric's own units.
+function gainText(met, gain) {
+  if (met.key === "score") return `+${Math.round(gain).toLocaleString()}`;
+  if (met.key === "country") return `+${Math.round(gain * 100)} pts`;
+  return `−${fmtKm(Math.abs(gain))}`;   // miss distance: a record is a drop
 }
 
 function monthsBetween(a, b) {
@@ -936,14 +1214,16 @@ const COLS = [
   { key: "value",   label: "Best (active)",get: (r) => r.value,        type: "num", cell: (r) => METRICS[state.metric].fmtLong(r.value) },
   { key: "score",   label: "Avg score",    get: (r) => bestOn(r, "score"),   type: "num", cell: (r) => Math.round(bestOn(r, "score")).toLocaleString() },
   { key: "country", label: "Country %",    get: (r) => bestOn(r, "country"), type: "num", cell: (r) => Math.round(bestOn(r, "country") * 100) + "%" },
-  { key: "miss",    label: "Median miss",  get: (r) => medianMiss(r),  type: "num", cell: (r) => { const v = medianMiss(r); return v == null ? "—" : fmtKm(v); } },
+  { key: "miss",    label: "Median miss",  get: (r) => bestMiss(r) ?? Infinity, type: "num", cell: (r) => { const v = bestMiss(r); return v == null ? "—" : fmtKm(v); } },
   { key: "runs",    label: "Runs",         get: (r) => r.runs.length,  type: "num", cell: (r) => String(r.runs.length) },
 ];
 
+// Each column reports that model's best run on its own column, so "Avg score"
+// and "Median miss" can come from different runs -- the same rule the chart uses.
 const bestOn = (r, key) => Math.max(...r.runs.map((v) => v[key]));
-function medianMiss(r) {
-  const b = r.runs.reduce((a, v) => (v[state.metric] > a[state.metric] ? v : a), r.runs[0]);
-  return b.median_distance_km;
+function bestMiss(r) {
+  const vals = r.runs.map((v) => v.median_distance_km).filter((v) => v != null);
+  return vals.length ? Math.min(...vals) : null;
 }
 
 function renderTable() {
@@ -1010,8 +1290,15 @@ function renderLegend() {
   }
   const f = document.createElement("span");
   f.className = "lg frontier";
-  f.innerHTML = `<i></i>Best score to date`;
+  f.innerHTML = `<i></i>Best to date`;
   host.appendChild(f);
+
+  if (state.trend !== "off") {
+    const t = document.createElement("span");
+    t.className = "lg trendkey";
+    t.innerHTML = `<i></i>Trend per lab (same colours)`;
+    host.appendChild(t);
+  }
 }
 
 function renderDatasetSeg() {
@@ -1039,12 +1326,16 @@ function renderAll() {
   const met = METRICS[state.metric];
   const ds = DATA.datasets[state.dataset];
   $("fig-title").textContent = `${met.label} by release date — ${ds.label}`;
+  const tail = {
+    score: `GeoGuessr score it earns on ${ds.locations} unseen Street View panoramas — <strong>5,000</strong> means it dropped the pin on the exact spot.`,
+    country: `share of those ${ds.locations} panoramas it placed in the <strong>right country</strong>.`,
+    miss: `distance of its <strong>median</strong> guess from the true spot, on a log scale — the axis the scoring formula is built from, and the one that doesn't saturate.`,
+  }[met.key === "median_distance_km" ? "miss" : met.key];
   document.querySelector(".standfirst").innerHTML =
     `Every model GeoBench has scored, plotted against the day it shipped. Each point is one released model
-     at its <strong>best</strong> setting; the y-axis is the ${met.key === "score"
-       ? `GeoGuessr score it earns on ${ds.locations} unseen Street View panoramas — <strong>5,000</strong> means it dropped the pin on the exact spot.`
-       : `share of those ${ds.locations} panoramas it placed in the <strong>right country</strong>.`}`;
+     at its <strong>best</strong> setting; the y-axis is the ${tail}`;
   draw();
+  renderRates();
   renderRelay();
   renderTable();
   $("tip").dataset.open = "false";
@@ -1055,14 +1346,30 @@ $("seg-metric").addEventListener("click", (e) => {
   if (!b) return;
   state.metric = b.dataset.metric;
   state.active = null;
-  if (state.sort.col === "value") state.sort.dir = -1;
+  // "best first" flips when a lower number is the better one
+  if (state.sort.col === "value") state.sort.dir = METRICS[state.metric].better === "low" ? 1 : -1;
   $("seg-metric").querySelectorAll("button").forEach((x) =>
     x.setAttribute("aria-pressed", String(x.dataset.metric === state.metric)));
   renderAll();
 });
+$("seg-trend").addEventListener("click", (e) => {
+  const b = e.target.closest("button[data-trend]");
+  if (!b) return;
+  state.trend = b.dataset.trend;
+  $("seg-trend").querySelectorAll("button").forEach((x) =>
+    x.setAttribute("aria-pressed", String(x.dataset.trend === state.trend)));
+  renderLegend();
+  draw();
+  renderRates();
+});
 $("opt-variants").addEventListener("change", (e) => { state.variants = e.target.checked; draw(); });
 $("opt-tools").addEventListener("change", (e) => {
   state.tools = e.target.checked;
+  state.active = null;
+  renderAll();
+});
+$("opt-tuned").addEventListener("change", (e) => {
+  state.tuned = e.target.checked;
   state.active = null;
   renderAll();
 });
