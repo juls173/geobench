@@ -190,6 +190,10 @@ class OpenAIClient(BaseMultimodalModel):
     base_url = "https://api.openai.com/v1/responses"
 
     reasoning_effort: str = ""
+    # Ask for the reasoning summary. Without it the response comes back with
+    # reasoning.summary = null and the chain of thought is gone for good, since
+    # only the raw JSON is archived. Set "" on a model whose API rejects it.
+    reasoning_summary: str = "auto"
     detail: str = ""
     tools: List[dict] = []
 
@@ -228,6 +232,8 @@ class OpenAIClient(BaseMultimodalModel):
 
         if self.reasoning_effort:
              payload["reasoning"] = {"effort": self.reasoning_effort}
+             if self.reasoning_summary:
+                 payload["reasoning"]["summary"] = self.reasoning_summary
 
         if self.tools:
              payload["tools"] = self.tools
