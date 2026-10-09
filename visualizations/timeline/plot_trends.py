@@ -10,7 +10,7 @@ sigmoid shape Epoch's ECI model assumes -- because a straight line on a bounded
 score eventually predicts the impossible. Each line spans only the dates that
 lab has actually shipped in. Every model is drawn, but each line is fitted only through its lab's best-so-far
 models -- one that didn't beat the lab's previous best (a small or cheap variant)
-is shown faded and kept out of the fit. The first and latest best-so-far are named.
+is drawn in a lighter tint and kept out of the fit. The first and latest best-so-far are named.
 
     python plot_trends.py                # both image sets
     python plot_trends.py --dataset acw
@@ -41,6 +41,12 @@ INK, INK_2, INK_3 = "#16181c", "#4d525c", "#80848c"
 PRO_HUMAN = {"acw": 4100, "photospheres": 3700}
 
 YEAR = 365.2425
+
+
+def tint(hex_colour: str, amount: float) -> tuple[float, float, float]:
+    """The colour mixed toward white: amount=1 is the colour itself, 0 is white."""
+    r, g, b = (int(hex_colour[i:i + 2], 16) / 255 for i in (1, 3, 5))
+    return tuple(1 - amount * (1 - c) for c in (r, g, b))
 
 
 def to_year(iso: str) -> float:
@@ -140,15 +146,15 @@ def plot(ds: dict, out: Path) -> Path:
 
         # the rest of the lab's line-up stays on the plot, but not in the line
         rest = [p for p in pts if p[2] not in on_fr]
-        ax.scatter([to_date(p[0]) for p in rest], [p[1] for p in rest], s=30, color=col,
-                   alpha=0.28, edgecolor="none", zorder=3)
+        ax.scatter([to_date(p[0]) for p in rest], [p[1] for p in rest], s=26,
+                   color=tint(col, 0.45), edgecolor=tint(col, 0.75), linewidth=1, zorder=3)
 
         xs, ys, _ = zip(*fr)
         a, b = logistic_fit(xs, ys)
         grid = [xs[0] + (xs[-1] - xs[0]) * i / 100 for i in range(101)]
         curve = [CEILING / (1 + math.exp(-(a + b * g))) for g in grid]
 
-        ax.scatter([to_date(x) for x in xs], ys, s=50, color=col,
+        ax.scatter([to_date(x) for x in xs], ys, s=62, color=col,
                    edgecolor="white", linewidth=1.2, zorder=5)
         ax.plot([to_date(g) for g in grid], curve, color=col, linewidth=2.8, zorder=4)
         ends.append([curve[-1], lab, col, grid[-1]])
@@ -195,7 +201,7 @@ def plot(ds: dict, out: Path) -> Path:
     ax.set_title(f"GeoBench score over time — {ds['label'].split(' — ')[0]}",
                  loc="left", fontsize=15, fontweight="bold", color=INK, pad=24)
     ax.text(0, 1.015, "Solid dots: each lab's best model at the time, which the line is "
-            "fitted through · faded dots: its other models",
+            "fitted through · light dots: its other models",
             transform=ax.transAxes, fontsize=9.5, color=INK_3, va="bottom")
 
     fig.tight_layout()
