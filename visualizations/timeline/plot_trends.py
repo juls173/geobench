@@ -8,7 +8,9 @@ tuned-prompt runs are left out so every lab is measured on the same setup. The
 trend line is fitted in logit space against the 5,000-point ceiling -- the
 sigmoid shape Epoch's ECI model assumes -- because a straight line on a bounded
 score eventually predicts the impossible. Each line spans only the dates that
-lab has actually shipped in. Each lab's best and latest model are named.
+lab has actually shipped in. Every model is drawn, but each line is fitted only through its lab's best-so-far
+models -- one that didn't beat the lab's previous best (a small or cheap variant)
+is shown faded and kept out of the fit. The first and latest best-so-far are named.
 
     python plot_trends.py                # both image sets
     python plot_trends.py --dataset acw
@@ -71,12 +73,24 @@ def best_scores(ds: dict, lab: str) -> list[tuple[float, float, str]]:
     return sorted(out)
 
 
-def notable(series: dict[str, list[tuple[float, float, str]]]) -> set[str]:
-    """Models worth naming: each lab's best model and its latest one."""
+def lab_frontier(pts: list[tuple[float, float, str]]) -> list[tuple[float, float, str]]:
+    """The lab's best-so-far models: each one that beat everything the same lab
+    had released before it. A lab's small, cheap models never make this list,
+    so they don't drag its trend down."""
+    out, best = [], -math.inf
+    for x, y, name in sorted(pts, key=lambda p: (p[0], -p[1])):
+        if y > best:
+            out.append((x, y, name))
+            best = y
+    return out
+
+
+def notable(frontiers: dict[str, list[tuple[float, float, str]]]) -> set[str]:
+    """Models worth naming: the first and latest model on each lab's frontier."""
     names = set()
-    for pts in series.values():
-        names.add(max(pts, key=lambda p: p[1])[2])
-        names.add(pts[-1][2])
+    for fr in frontiers.values():
+        names.add(fr[0][2])
+        names.add(fr[-1][2])
     return names
 
 
@@ -111,24 +125,33 @@ def place_labels(ax, fig, items, avoid, obstacles) -> None:
 def plot(ds: dict, out: Path) -> Path:
     fig, ax = plt.subplots(figsize=(11, 6.4))
     series = {lab: best_scores(ds, lab) for lab in LABS}
-    series = {lab: pts for lab, pts in series.items() if len(pts) >= 3}
+    series = {lab: pts for lab, pts in series.items() if len(lab_frontier(pts)) >= 2}
     all_x = [p[0] for pts in series.values() for p in pts]
     all_y = [p[1] for pts in series.values() for p in pts]
     x_min, x_max = min(all_x), max(all_x)
     ends = []
     lines = []      # (dates, values) of everything a label must not sit on
 
+    frontiers = {lab: lab_frontier(pts) for lab, pts in series.items()}
     for lab, pts in series.items():
         col = LABS[lab]
-        xs, ys, _ = zip(*pts)
+        fr = frontiers[lab]
+        on_fr = {p[2] for p in fr}
+
+        # the rest of the lab's line-up stays on the plot, but not in the line
+        rest = [p for p in pts if p[2] not in on_fr]
+        ax.scatter([to_date(p[0]) for p in rest], [p[1] for p in rest], s=30, color=col,
+                   alpha=0.28, edgecolor="none", zorder=3)
+
+        xs, ys, _ = zip(*fr)
         a, b = logistic_fit(xs, ys)
         grid = [xs[0] + (xs[-1] - xs[0]) * i / 100 for i in range(101)]
         curve = [CEILING / (1 + math.exp(-(a + b * g))) for g in grid]
 
-        ax.scatter([to_date(x) for x in xs], ys, s=40, color=col, alpha=0.55,
-                   edgecolor="white", linewidth=1, zorder=3)
+        ax.scatter([to_date(x) for x in xs], ys, s=50, color=col,
+                   edgecolor="white", linewidth=1.2, zorder=5)
         ax.plot([to_date(g) for g in grid], curve, color=col, linewidth=2.8, zorder=4)
-        ends.append([curve[-1], lab, col])
+        ends.append([curve[-1], lab, col, grid[-1]])
         lines.append(([to_date(g) for g in grid], curve))
 
     # pro human baseline
@@ -143,12 +166,16 @@ def plot(ds: dict, out: Path) -> Path:
         avoid.append(ax.text(to_date(x_min), human + 25, f"Pro human  {human:,}",
                              color=INK_2, fontsize=10, ha="left", va="bottom"))
 
-    # lab names at the end of each line, spread apart if they crowd
+    # each lab's name sits at the end of its own line -- a lab whose best model is
+    # older (no later model beat it) ends earlier. Names that would land on top
+    # of each other are spread apart vertically.
     ends.sort()
     for i in range(1, len(ends)):
-        ends[i][0] = max(ends[i][0], ends[i - 1][0] + 110)
-    for y, lab, col in ends:
-        avoid.append(ax.text(to_date(x_max + 0.03), y, lab, color=col, fontsize=11,
+        for j in range(i):
+            if abs(ends[i][3] - ends[j][3]) < 0.3:
+                ends[i][0] = max(ends[i][0], ends[j][0] + 110)
+    for y, lab, col, x_end in ends:
+        avoid.append(ax.text(to_date(x_end + 0.03), y, lab, color=col, fontsize=11,
                              fontweight="bold", va="center", ha="left"))
 
     ax.set_xlim(to_date(x_min - 0.06), to_date(x_max + 0.32))
@@ -167,15 +194,15 @@ def plot(ds: dict, out: Path) -> Path:
     ax.set_xlabel("Model release date", color=INK_2, fontsize=10.5)
     ax.set_title(f"GeoBench score over time — {ds['label'].split(' — ')[0]}",
                  loc="left", fontsize=15, fontweight="bold", color=INK, pad=24)
-    ax.text(0, 1.015, "Each point is a model at its best run · line = trend per lab, "
-            "curved because the score tops out at 5,000",
+    ax.text(0, 1.015, "Solid dots: each lab's best model at the time, which the line is "
+            "fitted through · faded dots: its other models",
             transform=ax.transAxes, fontsize=9.5, color=INK_3, va="bottom")
 
     fig.tight_layout()
     fig.canvas.draw()
-    named = notable(series)
-    items = [(to_date(x), y, name, LABS[lab]) for lab, pts in series.items()
-             for x, y, name in pts if name in named]
+    named = notable(frontiers)
+    items = [(to_date(x), y, name, LABS[lab]) for lab, fr in frontiers.items()
+             for x, y, name in fr if name in named]
     obstacles = []
     for dates, vals in lines:
         for d, v in zip(dates, vals):
