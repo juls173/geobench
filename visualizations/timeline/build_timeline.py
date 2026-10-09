@@ -82,6 +82,9 @@ _m("Claude Fable 5", "Claude Fable 5", "Claude Fable 5")
 for eff in ("Low", "Medium", "High", "XHigh"):
     _m(f"Claude Opus 5 ({eff})", "Claude Opus 5", "Claude Opus 5", eff)
     _m(f"Claude Fable 5.1 ({eff})", "Claude Fable 5.1", "Claude Fable 5.1", eff)
+    _m(f"Claude Opus 5.5 ({eff})", "Claude Opus 5.5", "Claude Opus 5.5", eff)
+    # search runs are written "(High, Search)" -- same model, same date, with tools
+    _m(f"Claude Opus 5.5 ({eff}, Search)", "Claude Opus 5.5", "Claude Opus 5.5", f"{eff} · Search")
 
 # -- OpenAI ------------------------------------------------------------------
 _m("GPT-4o", "GPT-4o", "GPT-4o (Nov 2024)")
@@ -98,6 +101,9 @@ for eff in ("Low", "Medium", "High", "XHigh"):
     _m(f"GPT-5 ({eff})", "GPT-5", "GPT-5", eff)
     _m(f"GPT-5.5 ({eff})", "GPT-5.5", "GPT-5.5", eff)
     _m(f"GPT-6 Astra ({eff})", "GPT-6 Astra", "GPT-6 Astra", eff)
+    _m(f"GPT-6 Luna ({eff})", "GPT-6 Luna", "GPT-6 Luna", eff)
+    _m(f"GPT-6 Sol ({eff})", "GPT-6 Sol", "GPT-6 Sol", eff)
+    _m(f"GPT-6.1 Sol ({eff})", "GPT-6.1 Sol", "GPT-6.1 Sol", eff)
     for sub in ("Luna", "Sol", "Terra"):
         _m(f"GPT-5.6 {sub} ({eff})", f"GPT-5.6 {sub}", f"GPT-5.6 {sub}", eff)
 for sub in ("Luna", "Sol", "Terra"):
@@ -126,6 +132,8 @@ _m("Gemini 3.1 Pro Preview", "Gemini 3.1 Pro", "Gemini 3.1 Pro")
 _m("Gemini 3.1 Flash Lite Preview", "Gemini 3.1 Flash-Lite", "Gemini 3.1 Flash-Lite")
 _m("Gemini 3.5 Flash", "Gemini 3.5 Flash", "Gemini 3.5 Flash")
 _m("Gemini 3.8 Flash", "Gemini 3.8 Flash", "Gemini 3.8 Flash")
+for eff in ("Low", "Medium", "High"):
+    _m(f"Gemini 3.8 Flash ({eff})", "Gemini 3.8 Flash", "Gemini 3.8 Flash", eff)
 _m("Gemma 3 27b", "Gemma 3 27B", "Gemma 3 27B")
 _m("Gemma 3 27B", "Gemma 3 27B", "Gemma 3 27B")
 
@@ -335,6 +343,9 @@ def main() -> None:
                 return
             test_id = match[0]
 
+        if row.get("provider") == "Human":
+            return
+
         raw = row.get("model", "")
         entry = MODELS.get(raw.lower())
         if entry is None:
@@ -379,7 +390,7 @@ def main() -> None:
                                    if row.get("median_distance_km") is not None else None),
             "refusal": round(float(row.get("refusal_rate", 0)), 4),
             "n": int(row.get("n", 0)),
-            "tools": variant == "Search",
+            "tools": "Search" in variant,
             "prompt_tuned": tuned,
             "source": source,
         })

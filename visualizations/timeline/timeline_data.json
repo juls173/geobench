@@ -1,5 +1,5 @@
 {
- "generated": "2026-09-14",
+ "generated": "2026-10-09",
  "sources": {
   "scores": "geobench.org leaderboard + local benchmark runs",
   "dates": "Epoch AI benchmark_data.zip (model_metadata.csv)",
@@ -1015,7 +1015,7 @@
       {
        "variant": "geoguessr prompt",
        "score": 4472.1,
-       "country": 0.91,
+       "country": 0.92,
        "median_score": 4747,
        "median_distance_km": 103.0,
        "refusal": 0.0,
@@ -1027,7 +1027,7 @@
       {
        "variant": "default",
        "score": 4449.0,
-       "country": 0.91,
+       "country": 0.93,
        "median_score": 4788,
        "median_distance_km": 94.5,
        "refusal": 0.0,
@@ -1080,11 +1080,11 @@
      "variants": [
       {
        "variant": "High",
-       "score": 3321.2,
+       "score": 3292.5,
        "country": 0.61,
        "median_score": 3864,
-       "median_distance_km": 477.7,
-       "refusal": 0.01,
+       "median_distance_km": 501.1,
+       "refusal": 0.0,
        "n": 100,
        "tools": false,
        "prompt_tuned": false,
@@ -1092,11 +1092,11 @@
       },
       {
        "variant": "Medium",
-       "score": 3288.9,
-       "country": 0.54,
-       "median_score": 3934,
-       "median_distance_km": 459.2,
-       "refusal": 0.04,
+       "score": 3162.5,
+       "country": 0.58,
+       "median_score": 3877,
+       "median_distance_km": 522.7,
+       "refusal": 0.0,
        "n": 100,
        "tools": false,
        "prompt_tuned": false,
@@ -1104,11 +1104,11 @@
       },
       {
        "variant": "Low",
-       "score": 3165.0,
-       "country": 0.52,
-       "median_score": 3759,
-       "median_distance_km": 528.8,
-       "refusal": 0.07,
+       "score": 2952.6,
+       "country": 0.56,
+       "median_score": 3672,
+       "median_distance_km": 586.5,
+       "refusal": 0.0,
        "n": 100,
        "tools": false,
        "prompt_tuned": false,
@@ -1309,7 +1309,7 @@
       {
        "variant": "XHigh",
        "score": 4284.9,
-       "country": 0.84,
+       "country": 0.85,
        "median_score": 4721,
        "median_distance_km": 109.3,
        "refusal": 0.0,
@@ -1328,11 +1328,47 @@
      "epoch_group": "Gemini 3.8 Flash",
      "variants": [
       {
+       "variant": "Low",
+       "score": 4297.2,
+       "country": 0.87,
+       "median_score": 4722,
+       "median_distance_km": 112.1,
+       "refusal": 0.0,
+       "n": 100,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "local run"
+      },
+      {
+       "variant": "Medium",
+       "score": 4241.6,
+       "country": 0.87,
+       "median_score": 4670,
+       "median_distance_km": 136.9,
+       "refusal": 0.0,
+       "n": 100,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "local run"
+      },
+      {
        "variant": "default",
        "score": 4198.8,
        "country": 0.86,
        "median_score": 4713,
        "median_distance_km": 121.6,
+       "refusal": 0.0,
+       "n": 100,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "local run"
+      },
+      {
+       "variant": "High",
+       "score": 4129.5,
+       "country": 0.8,
+       "median_score": 4609,
+       "median_distance_km": 153.1,
        "refusal": 0.0,
        "n": 100,
        "tools": false,
@@ -1387,11 +1423,275 @@
       {
        "variant": "XHigh",
        "score": 3999.8,
-       "country": 0.78,
+       "country": 0.79,
        "median_score": 4504,
        "median_distance_km": 197.4,
        "refusal": 0.0,
        "n": 100,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "local run"
+      }
+     ]
+    },
+    {
+     "model": "Claude Opus 5.5",
+     "org": "Anthropic",
+     "date": "2026-09-22",
+     "date_source": "Epoch AI",
+     "epoch_group": "Claude Opus 5.5",
+     "variants": [
+      {
+       "variant": "XHigh",
+       "score": 4451.6,
+       "country": 0.9,
+       "median_score": 4749,
+       "median_distance_km": 95.7,
+       "refusal": 0.0,
+       "n": 100,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "local run"
+      },
+      {
+       "variant": "Low",
+       "score": 4443.9,
+       "country": 0.94,
+       "median_score": 4726,
+       "median_distance_km": 122.6,
+       "refusal": 0.0,
+       "n": 100,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "local run"
+      },
+      {
+       "variant": "High",
+       "score": 4428.8,
+       "country": 0.89,
+       "median_score": 4737,
+       "median_distance_km": 105.1,
+       "refusal": 0.0,
+       "n": 100,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "local run"
+      },
+      {
+       "variant": "XHigh \u00b7 Search \u00b7 search-meta prompt",
+       "score": 4408.9,
+       "country": 0.92,
+       "median_score": 4754,
+       "median_distance_km": 94.6,
+       "refusal": 0.0,
+       "n": 100,
+       "tools": true,
+       "prompt_tuned": true,
+       "source": "local run"
+      },
+      {
+       "variant": "Medium \u00b7 Search \u00b7 search-meta prompt",
+       "score": 4406.7,
+       "country": 0.89,
+       "median_score": 4716,
+       "median_distance_km": 109.8,
+       "refusal": 0.0,
+       "n": 100,
+       "tools": true,
+       "prompt_tuned": true,
+       "source": "local run"
+      },
+      {
+       "variant": "High \u00b7 Search \u00b7 search-meta prompt",
+       "score": 4383.7,
+       "country": 0.92,
+       "median_score": 4708,
+       "median_distance_km": 119.0,
+       "refusal": 0.0,
+       "n": 100,
+       "tools": true,
+       "prompt_tuned": true,
+       "source": "local run"
+      },
+      {
+       "variant": "Medium",
+       "score": 4373.0,
+       "country": 0.89,
+       "median_score": 4751,
+       "median_distance_km": 104.6,
+       "refusal": 0.0,
+       "n": 100,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "local run"
+      }
+     ]
+    },
+    {
+     "model": "GPT-6 Luna",
+     "org": "OpenAI",
+     "date": "2026-09-22",
+     "date_source": "Epoch AI",
+     "epoch_group": "GPT-6 Luna",
+     "variants": [
+      {
+       "variant": "Low",
+       "score": 2905.1,
+       "country": 0.42,
+       "median_score": 3681,
+       "median_distance_km": 571.6,
+       "refusal": 0.0,
+       "n": 100,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "local run"
+      },
+      {
+       "variant": "High",
+       "score": 2860.4,
+       "country": 0.46,
+       "median_score": 3638,
+       "median_distance_km": 612.6,
+       "refusal": 0.0,
+       "n": 100,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "local run"
+      },
+      {
+       "variant": "Medium",
+       "score": 2808.6,
+       "country": 0.5,
+       "median_score": 3671,
+       "median_distance_km": 690.5,
+       "refusal": 0.0,
+       "n": 100,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "local run"
+      },
+      {
+       "variant": "XHigh",
+       "score": 2717.6,
+       "country": 0.42,
+       "median_score": 3314,
+       "median_distance_km": 766.5,
+       "refusal": 0.0,
+       "n": 100,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "local run"
+      }
+     ]
+    },
+    {
+     "model": "GPT-6 Sol",
+     "org": "OpenAI",
+     "date": "2026-09-22",
+     "date_source": "Epoch AI",
+     "epoch_group": "GPT-6 Sol",
+     "variants": [
+      {
+       "variant": "Low",
+       "score": 3943.1,
+       "country": 0.8,
+       "median_score": 4291,
+       "median_distance_km": 284.1,
+       "refusal": 0.0,
+       "n": 100,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "local run"
+      },
+      {
+       "variant": "Medium",
+       "score": 3934.1,
+       "country": 0.74,
+       "median_score": 4493,
+       "median_distance_km": 201.1,
+       "refusal": 0.0,
+       "n": 100,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "local run"
+      },
+      {
+       "variant": "High",
+       "score": 3851.0,
+       "country": 0.77,
+       "median_score": 4408,
+       "median_distance_km": 257.5,
+       "refusal": 0.0,
+       "n": 100,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "local run"
+      },
+      {
+       "variant": "XHigh",
+       "score": 3786.1,
+       "country": 0.72,
+       "median_score": 4448,
+       "median_distance_km": 222.0,
+       "refusal": 0.0,
+       "n": 100,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "local run"
+      }
+     ]
+    },
+    {
+     "model": "GPT-6.1 Sol",
+     "org": "OpenAI",
+     "date": "2026-09-29",
+     "date_source": "Epoch AI",
+     "epoch_group": "GPT-6.1 Sol",
+     "variants": [
+      {
+       "variant": "High",
+       "score": 4949.0,
+       "country": 1.0,
+       "median_score": 5000,
+       "median_distance_km": 38.3,
+       "refusal": 0.0,
+       "n": 2,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "local run"
+      },
+      {
+       "variant": "XHigh",
+       "score": 4699.0,
+       "country": 1.0,
+       "median_score": 5000,
+       "median_distance_km": 237.8,
+       "refusal": 0.0,
+       "n": 2,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "local run"
+      },
+      {
+       "variant": "Low",
+       "score": 4381.6,
+       "country": 1.0,
+       "median_score": 4780,
+       "median_distance_km": 83.4,
+       "refusal": 0.0,
+       "n": 19,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "local run"
+      },
+      {
+       "variant": "Medium",
+       "score": 4281.6,
+       "country": 1.0,
+       "median_score": 4675,
+       "median_distance_km": 124.6,
+       "refusal": 0.0,
+       "n": 13,
        "tools": false,
        "prompt_tuned": false,
        "source": "local run"
@@ -1743,7 +2043,7 @@
       {
        "variant": "High",
        "score": 3658.8,
-       "country": 0.58,
+       "country": 0.62,
        "median_score": 4288,
        "median_distance_km": 238.1,
        "refusal": 0.0,
@@ -1755,7 +2055,7 @@
       {
        "variant": "Medium",
        "score": 3559.5,
-       "country": 0.6,
+       "country": 0.62,
        "median_score": 4376,
        "median_distance_km": 186.9,
        "refusal": 0.0,
@@ -2010,7 +2310,7 @@
       {
        "variant": "High",
        "score": 3832.2,
-       "country": 0.62,
+       "country": 0.64,
        "median_score": 4565,
        "median_distance_km": 156.4,
        "refusal": 0.0,
@@ -2171,11 +2471,11 @@
       },
       {
        "variant": "High",
-       "score": 3039.1,
+       "score": 2978.9,
        "country": 0.46,
        "median_score": 3920,
-       "median_distance_km": 337.2,
-       "refusal": 0.02,
+       "median_distance_km": 398.0,
+       "refusal": 0.0,
        "n": 50,
        "tools": false,
        "prompt_tuned": false,
@@ -2183,11 +2483,11 @@
       },
       {
        "variant": "Low",
-       "score": 2933.3,
-       "country": 0.46,
-       "median_score": 3601,
-       "median_distance_km": 514.5,
-       "refusal": 0.08,
+       "score": 2706.4,
+       "country": 0.5,
+       "median_score": 3219,
+       "median_distance_km": 745.3,
+       "refusal": 0.0,
        "n": 50,
        "tools": false,
        "prompt_tuned": false,
@@ -2205,7 +2505,7 @@
       {
        "variant": "Medium",
        "score": 4053.2,
-       "country": 0.76,
+       "country": 0.78,
        "median_score": 4726,
        "median_distance_km": 80.1,
        "refusal": 0.0,
@@ -2293,6 +2593,42 @@
      "epoch_group": "Gemini 3.8 Flash",
      "variants": [
       {
+       "variant": "Low",
+       "score": 4446.0,
+       "country": 0.82,
+       "median_score": 4777,
+       "median_distance_km": 67.5,
+       "refusal": 0.0,
+       "n": 50,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "local run"
+      },
+      {
+       "variant": "Medium",
+       "score": 4297.5,
+       "country": 0.78,
+       "median_score": 4652,
+       "median_distance_km": 103.5,
+       "refusal": 0.0,
+       "n": 50,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "local run"
+      },
+      {
+       "variant": "High",
+       "score": 4290.9,
+       "country": 0.8,
+       "median_score": 4635,
+       "median_distance_km": 110.0,
+       "refusal": 0.0,
+       "n": 50,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "local run"
+      },
+      {
        "variant": "default",
        "score": 4265.5,
        "country": 0.78,
@@ -2340,9 +2676,84 @@
       {
        "variant": "Low",
        "score": 3679.1,
-       "country": 0.66,
+       "country": 0.68,
        "median_score": 4623,
        "median_distance_km": 109.6,
+       "refusal": 0.0,
+       "n": 50,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "local run"
+      }
+     ]
+    },
+    {
+     "model": "Claude Opus 5.5",
+     "org": "Anthropic",
+     "date": "2026-09-22",
+     "date_source": "Epoch AI",
+     "epoch_group": "Claude Opus 5.5",
+     "variants": [
+      {
+       "variant": "Medium \u00b7 Search \u00b7 search-open prompt",
+       "score": 4365.5,
+       "country": 0.86,
+       "median_score": 4875,
+       "median_distance_km": 49.7,
+       "refusal": 0.0,
+       "n": 50,
+       "tools": true,
+       "prompt_tuned": true,
+       "source": "local run"
+      },
+      {
+       "variant": "Medium",
+       "score": 4330.8,
+       "country": 0.86,
+       "median_score": 4918,
+       "median_distance_km": 23.6,
+       "refusal": 0.0,
+       "n": 50,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "local run"
+      }
+     ]
+    },
+    {
+     "model": "GPT-6 Luna",
+     "org": "OpenAI",
+     "date": "2026-09-22",
+     "date_source": "Epoch AI",
+     "epoch_group": "GPT-6 Luna",
+     "variants": [
+      {
+       "variant": "Medium",
+       "score": 2510.4,
+       "country": 0.38,
+       "median_score": 2994,
+       "median_distance_km": 821.6,
+       "refusal": 0.0,
+       "n": 50,
+       "tools": false,
+       "prompt_tuned": false,
+       "source": "local run"
+      }
+     ]
+    },
+    {
+     "model": "GPT-6 Sol",
+     "org": "OpenAI",
+     "date": "2026-09-22",
+     "date_source": "Epoch AI",
+     "epoch_group": "GPT-6 Sol",
+     "variants": [
+      {
+       "variant": "Medium",
+       "score": 3459.4,
+       "country": 0.62,
+       "median_score": 4183,
+       "median_distance_km": 251.4,
        "refusal": 0.0,
        "n": 50,
        "tools": false,
