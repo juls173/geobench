@@ -8,7 +8,7 @@ tuned-prompt runs are left out so every lab is measured on the same setup. The
 trend line is fitted in logit space against the 5,000-point ceiling -- the
 sigmoid shape Epoch's ECI model assumes -- because a straight line on a bounded
 score eventually predicts the impossible. Each line spans only the dates that
-lab has actually shipped in.
+lab has actually shipped in. Each lab's best and latest model are named.
 
     python plot_trends.py                # both image sets
     python plot_trends.py --dataset acw
@@ -26,6 +26,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
+from matplotlib import patheffects
 
 HERE = Path(__file__).resolve().parent
 CEILING = 5000.0
@@ -58,60 +59,101 @@ def logistic_fit(xs, ys):
     return mz - b * mx, b
 
 
-def best_scores(ds: dict, lab: str) -> list[tuple[float, float]]:
+def best_scores(ds: dict, lab: str) -> list[tuple[float, float, str]]:
+    """(release year, best standard-setup score, model name) for one lab."""
     out = []
     for m in ds["models"]:
         if m["org"] != lab:
             continue
         runs = [v for v in m["variants"] if not v.get("tools") and not v.get("prompt_tuned")]
         if runs:
-            out.append((to_year(m["date"]), max(v["score"] for v in runs)))
+            out.append((to_year(m["date"]), max(v["score"] for v in runs), m["model"]))
     return sorted(out)
 
 
+def notable(series: dict[str, list[tuple[float, float, str]]]) -> set[str]:
+    """Models worth naming: each lab's best model and its latest one."""
+    names = set()
+    for pts in series.values():
+        names.add(max(pts, key=lambda p: p[1])[2])
+        names.add(pts[-1][2])
+    return names
+
+
+def place_labels(ax, fig, items, avoid, obstacles) -> None:
+    """Greedy label placement: try spots around each point, nearest first, and
+    keep the first that overlaps no earlier label, nothing in `avoid`, and none
+    of the `obstacles` -- display-space points sampled along the lines."""
+    renderer = fig.canvas.get_renderer()
+    taken = [b.expanded(1.04, 1.15) for b in avoid]
+    offsets = [(0, 11, "center", "bottom"), (0, -11, "center", "top"),
+               (9, 0, "left", "center"), (-9, 0, "right", "center"),
+               (0, 24, "center", "bottom"), (0, -24, "center", "top"),
+               (9, 14, "left", "bottom"), (-9, 14, "right", "bottom"),
+               (9, -14, "left", "top"), (-9, -14, "right", "top")]
+    for x, y, name, col in sorted(items, key=lambda t: -t[1]):
+        for dx, dy, ha, va in offsets:
+            t = ax.annotate(name, (x, y), xytext=(dx, dy), textcoords="offset points",
+                            ha=ha, va=va, fontsize=8.5, color=col, fontweight="bold",
+                            path_effects=[patheffects.withStroke(linewidth=3, foreground="white")],
+                            zorder=6)
+            bb = t.get_window_extent(renderer)
+            inside = ax.get_window_extent(renderer).contains(bb.x0, bb.y0) and \
+                ax.get_window_extent(renderer).contains(bb.x1, bb.y1)
+            hits_line = any(bb.x0 - 3 <= px <= bb.x1 + 3 and bb.y0 - 3 <= py <= bb.y1 + 3
+                            for px, py in obstacles)
+            if inside and not hits_line and not any(bb.overlaps(o) for o in taken):
+                taken.append(bb.expanded(1.04, 1.15))
+                break
+            t.remove()
+
+
 def plot(ds: dict, out: Path) -> Path:
-    fig, ax = plt.subplots(figsize=(10, 6))
-    x_min, x_max = math.inf, -math.inf
+    fig, ax = plt.subplots(figsize=(11, 6.4))
+    series = {lab: best_scores(ds, lab) for lab in LABS}
+    series = {lab: pts for lab, pts in series.items() if len(pts) >= 3}
+    all_x = [p[0] for pts in series.values() for p in pts]
+    all_y = [p[1] for pts in series.values() for p in pts]
+    x_min, x_max = min(all_x), max(all_x)
     ends = []
+    lines = []      # (dates, values) of everything a label must not sit on
 
-    for lab, col in LABS.items():
-        pts = best_scores(ds, lab)
-        if len(pts) < 3:
-            continue
-        xs, ys = zip(*pts)
-        x_min, x_max = min(x_min, xs[0]), max(x_max, xs[-1])
+    for lab, pts in series.items():
+        col = LABS[lab]
+        xs, ys, _ = zip(*pts)
         a, b = logistic_fit(xs, ys)
-
         grid = [xs[0] + (xs[-1] - xs[0]) * i / 100 for i in range(101)]
         curve = [CEILING / (1 + math.exp(-(a + b * g))) for g in grid]
 
         ax.scatter([to_date(x) for x in xs], ys, s=40, color=col, alpha=0.55,
                    edgecolor="white", linewidth=1, zorder=3)
         ax.plot([to_date(g) for g in grid], curve, color=col, linewidth=2.8, zorder=4)
-
-        p = curve[-1] / CEILING                       # slope of the fit at the latest model
-        pace = CEILING * b * p * (1 - p)
-        ends.append([curve[-1], lab, col, pace])
+        ends.append([curve[-1], lab, col])
+        lines.append(([to_date(g) for g in grid], curve))
 
     # pro human baseline
     human = PRO_HUMAN.get(ds["id"])
+    avoid = []
     if human:
-        # stop short of the lab labels so the line never runs through them
+        # stop short of the lab names so the line never runs through them
         ax.hlines(human, to_date(x_min - 0.06), to_date(x_max + 0.01), color=INK_2,
                   linewidth=1.4, linestyle=(0, (5, 4)), zorder=2)
-        ax.text(to_date(x_min), human + 25, f"Pro human  {human:,}", color=INK_2,
-                fontsize=10, ha="left", va="bottom")
+        hx = [x_min - 0.06 + (x_max - x_min + 0.07) * i / 200 for i in range(201)]
+        lines.append(([to_date(v) for v in hx], [human] * len(hx)))
+        avoid.append(ax.text(to_date(x_min), human + 25, f"Pro human  {human:,}",
+                             color=INK_2, fontsize=10, ha="left", va="bottom"))
 
     # lab names at the end of each line, spread apart if they crowd
     ends.sort()
     for i in range(1, len(ends)):
-        ends[i][0] = max(ends[i][0], ends[i - 1][0] + 125)
-    for y, lab, col, pace in ends:
-        ax.text(to_date(x_max + 0.03), y, f"{lab}  {pace:+,.0f}/yr", color=col,
-                fontsize=10.5, fontweight="bold", va="center", ha="left")
+        ends[i][0] = max(ends[i][0], ends[i - 1][0] + 110)
+    for y, lab, col in ends:
+        avoid.append(ax.text(to_date(x_max + 0.03), y, lab, color=col, fontsize=11,
+                             fontweight="bold", va="center", ha="left"))
 
-    ax.set_xlim(to_date(x_min - 0.06), to_date(x_max + 0.42))
-    ax.set_ylim(2300, 4700)
+    ax.set_xlim(to_date(x_min - 0.06), to_date(x_max + 0.32))
+    ax.set_ylim(math.floor((min(all_y) - 150) / 250) * 250,
+                min(CEILING, math.ceil((max(all_y) + 200) / 250) * 250))
     ax.xaxis.set_major_locator(mdates.MonthLocator(bymonth=(1, 7)))
     ax.xaxis.set_major_formatter(mdates.DateFormatter("%b %Y"))
     ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda v, _p: f"{v:,.0f}"))
@@ -123,13 +165,28 @@ def plot(ds: dict, out: Path) -> Path:
     ax.spines["bottom"].set_color("#d6d8dd")
     ax.set_ylabel("Average score (of 5,000)", color=INK_2, fontsize=10.5)
     ax.set_xlabel("Model release date", color=INK_2, fontsize=10.5)
-
     ax.set_title(f"GeoBench score over time — {ds['label'].split(' — ')[0]}",
                  loc="left", fontsize=15, fontweight="bold", color=INK, pad=24)
-    ax.text(0, 1.015, "Best run per model · trend fitted per lab · /yr = current pace",
+    ax.text(0, 1.015, "Each point is a model at its best run · line = trend per lab, "
+            "curved because the score tops out at 5,000",
             transform=ax.transAxes, fontsize=9.5, color=INK_3, va="bottom")
 
     fig.tight_layout()
+    fig.canvas.draw()
+    named = notable(series)
+    items = [(to_date(x), y, name, LABS[lab]) for lab, pts in series.items()
+             for x, y, name in pts if name in named]
+    obstacles = []
+    for dates, vals in lines:
+        for d, v in zip(dates, vals):
+            obstacles.append(tuple(ax.transData.transform((mdates.date2num(d), v))))
+    # and every marker, so no label hides another model's point
+    for pts in series.values():
+        for x, y, _ in pts:
+            obstacles.append(tuple(ax.transData.transform((mdates.date2num(to_date(x)), y))))
+    place_labels(ax, fig, items,
+                 [t.get_window_extent(fig.canvas.get_renderer()) for t in avoid], obstacles)
+
     path = out / f"trends_{ds['id']}.png"
     fig.savefig(path, dpi=180, facecolor="white")
     plt.close(fig)

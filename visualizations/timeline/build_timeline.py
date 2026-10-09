@@ -397,7 +397,17 @@ def main() -> None:
 
     for row in published:
         ingest(row, "geobench.org")
+    # geobench.py rewrites summary.json after every location, so a run that is
+    # still going (or was killed) looks finished but covers only part of the
+    # dataset -- its first handful of locations can score anything. Keep only
+    # local runs that saw the whole image set.
+    full_size = {folder: n for folder, _, n in DATASETS.values()}
+    incomplete = []
     for row in local:
+        size = full_size.get(row.get("test", ""))
+        if size and int(row.get("n", 0)) < size:
+            incomplete.append(f"{row.get('model')} [{row.get('test')}] n={row.get('n')}/{size}")
+            continue
         ingest(row, "local run")
 
     datasets = {}
@@ -438,6 +448,10 @@ def main() -> None:
         page_path.write_text(page)
         print(f"Wrote {page_path}  ({len(page) / 1024:.0f} KB)")
 
+    if incomplete:
+        print("\nSkipped incomplete local runs (still running, or stopped early):")
+        for u in sorted(incomplete):
+            print(f"  {u}")
     if unmapped:
         print("\nUnmapped (add to MODELS/DATASETS if these should appear):")
         for u in sorted(unmapped):

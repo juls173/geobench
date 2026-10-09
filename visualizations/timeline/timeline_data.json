@@ -1640,63 +1640,6 @@
        "source": "local run"
       }
      ]
-    },
-    {
-     "model": "GPT-6.1 Sol",
-     "org": "OpenAI",
-     "date": "2026-09-29",
-     "date_source": "Epoch AI",
-     "epoch_group": "GPT-6.1 Sol",
-     "variants": [
-      {
-       "variant": "High",
-       "score": 4949.0,
-       "country": 1.0,
-       "median_score": 5000,
-       "median_distance_km": 38.3,
-       "refusal": 0.0,
-       "n": 2,
-       "tools": false,
-       "prompt_tuned": false,
-       "source": "local run"
-      },
-      {
-       "variant": "XHigh",
-       "score": 4699.0,
-       "country": 1.0,
-       "median_score": 5000,
-       "median_distance_km": 237.8,
-       "refusal": 0.0,
-       "n": 2,
-       "tools": false,
-       "prompt_tuned": false,
-       "source": "local run"
-      },
-      {
-       "variant": "Low",
-       "score": 4381.6,
-       "country": 1.0,
-       "median_score": 4780,
-       "median_distance_km": 83.4,
-       "refusal": 0.0,
-       "n": 19,
-       "tools": false,
-       "prompt_tuned": false,
-       "source": "local run"
-      },
-      {
-       "variant": "Medium",
-       "score": 4281.6,
-       "country": 1.0,
-       "median_score": 4675,
-       "median_distance_km": 124.6,
-       "refusal": 0.0,
-       "n": 13,
-       "tools": false,
-       "prompt_tuned": false,
-       "source": "local run"
-      }
-     ]
     }
    ]
   },
